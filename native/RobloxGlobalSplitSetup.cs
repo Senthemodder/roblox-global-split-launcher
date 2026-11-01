@@ -270,6 +270,20 @@ namespace RobloxGlobalSplitSetup
 
         public static void ExtractEmbeddedPayload(string targetDir, Action<int, string> onProgress)
         {
+            foreach (string procName in new string[] { "RobloxGlobalLauncher", "sing-box" })
+            {
+                try
+                {
+                    foreach (Process p in Process.GetProcessesByName(procName))
+                    {
+                        p.Kill();
+                        p.WaitForExit(2000);
+                    }
+                }
+                catch
+                {
+                }
+            }
             Directory.CreateDirectory(targetDir);
             Assembly asm = Assembly.GetExecutingAssembly();
             using (Stream resStream = asm.GetManifestResourceStream("RobloxGlobalSplit.payload.zip"))

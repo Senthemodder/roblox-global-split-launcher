@@ -321,6 +321,10 @@ namespace RobloxGlobalSplit
                 {
                     backendProcess.Kill();
                 }
+                foreach (Process sb in Process.GetProcessesByName("sing-box"))
+                {
+                    sb.Kill();
+                }
             }
             catch
             {
