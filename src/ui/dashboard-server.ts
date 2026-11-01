@@ -136,6 +136,22 @@ export class DashboardServer {
     return `http://127.0.0.1:${this.uiPort}`;
   }
 
+  private serveStaticAsset(res: http.ServerResponse, fileName: string, contentType: string): void {
+    const assetPath = path.join(process.cwd(), "assets", fileName);
+    if (!fs.existsSync(assetPath)) {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+    const buf = fs.readFileSync(assetPath);
+    res.writeHead(200, {
+      "Content-Type": contentType,
+      "Content-Length": buf.length,
+      "Cache-Control": "public, max-age=3600"
+    });
+    res.end(buf);
+  }
+
   private async handleRequest(
     req: http.IncomingMessage,
     res: http.ServerResponse
@@ -148,6 +164,21 @@ export class DashboardServer {
       const html = this.renderDashboardHtml();
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(html);
+      return;
+    }
+
+    if (method === "GET" && pathname === "/assets/logo.png") {
+      this.serveStaticAsset(res, "logo.png", "image/png");
+      return;
+    }
+
+    if (method === "GET" && pathname === "/assets/banner.png") {
+      this.serveStaticAsset(res, "banner.png", "image/png");
+      return;
+    }
+
+    if (method === "GET" && pathname === "/favicon.ico") {
+      this.serveStaticAsset(res, "app.ico", "image/x-icon");
       return;
     }
 
@@ -344,6 +375,7 @@ export class DashboardServer {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roblox Global Split-Tunnel & Bootstrapper</title>
+  <link rel="icon" href="/favicon.ico" />
   <style>
     :root {
       --bg-canvas: #F5F5F3;
@@ -354,10 +386,10 @@ export class DashboardServer {
       --ink-muted: #737373;
       --line: #D4D4D0;
       --line-strong: #0A0A0A;
-      --ag-blue: #0052FF;
-      --ag-green: #007A33;
-      --ag-red: #C81E1E;
-      --ag-amber: #B45309;
+      --sig-blue: #0052FF;
+      --sig-green: #007A33;
+      --sig-red: #C81E1E;
+      --sig-amber: #B45309;
       --mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
       --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -386,7 +418,6 @@ export class DashboardServer {
       background: var(--bg-surface);
       min-height: 100vh;
     }
-    /* Top Architectural Bar */
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -398,21 +429,15 @@ export class DashboardServer {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 16px 24px;
+      padding: 14px 24px;
       border-right: 1px solid var(--line);
     }
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      background: var(--ink);
-      color: var(--bg-surface);
-      font-family: var(--mono);
-      font-weight: 700;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      letter-spacing: -0.5px;
+    .brand-logo-img {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line-strong);
+      object-fit: cover;
+      background: var(--bg-surface);
     }
     .brand-title h1 {
       margin: 0;
@@ -451,14 +476,13 @@ export class DashboardServer {
     .status-square {
       width: 8px;
       height: 8px;
-      background: var(--ag-green);
+      background: var(--sig-green);
       display: inline-block;
     }
     .status-tag.warn .status-square {
-      background: var(--ag-amber);
+      background: var(--sig-amber);
     }
 
-    /* 4-Column Metric Matrix */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -492,10 +516,9 @@ export class DashboardServer {
     .metric-cell .sub {
       font-family: var(--mono);
       font-size: 11px;
-      color: var(--ag-blue);
+      color: var(--sig-blue);
     }
 
-    /* Main 2x2 Architectural Grid */
     .workspace-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -533,7 +556,15 @@ export class DashboardServer {
       color: var(--ink-muted);
     }
 
-    /* Schematic Lanes */
+    .schematic-banner {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      border: 1px solid var(--line-strong);
+      margin-bottom: 12px;
+      background: var(--bg-subtle);
+      display: block;
+    }
     .schematic-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -557,7 +588,6 @@ export class DashboardServer {
       text-transform: uppercase;
     }
 
-    /* Rows & Controls */
     .row {
       display: flex;
       justify-content: space-between;
@@ -601,7 +631,7 @@ export class DashboardServer {
       margin-bottom: 10px;
     }
     input[type="text"]:focus {
-      border-color: var(--ag-blue);
+      border-color: var(--sig-blue);
       background: var(--bg-subtle);
     }
     input[type="checkbox"] {
@@ -637,8 +667,8 @@ export class DashboardServer {
       color: var(--bg-surface);
     }
     button.primary-blue {
-      background: var(--ag-blue);
-      border-color: var(--ag-blue);
+      background: var(--sig-blue);
+      border-color: var(--sig-blue);
       color: #FFFFFF;
     }
     button.primary-blue:hover {
@@ -648,11 +678,11 @@ export class DashboardServer {
     }
     button.danger {
       background: var(--bg-surface);
-      color: var(--ag-red);
-      border: 1px solid var(--ag-red);
+      color: var(--sig-red);
+      border: 1px solid var(--sig-red);
     }
     button.danger:hover {
-      background: var(--ag-red);
+      background: var(--sig-red);
       color: #FFFFFF;
     }
     .btn-group {
@@ -662,7 +692,6 @@ export class DashboardServer {
       margin-top: 12px;
     }
 
-    /* Telemetry Log Table */
     .log-box {
       height: 255px;
       overflow-y: auto;
@@ -679,11 +708,10 @@ export class DashboardServer {
       justify-content: space-between;
       gap: 12px;
     }
-    .tag-tunnel { color: var(--ag-blue); font-weight: 700; }
-    .tag-direct { color: var(--ag-green); font-weight: 700; }
-    .tag-block { color: var(--ag-red); font-weight: 700; }
+    .tag-tunnel { color: var(--sig-blue); font-weight: 700; }
+    .tag-direct { color: var(--sig-green); font-weight: 700; }
+    .tag-block { color: var(--sig-red); font-weight: 700; }
 
-    /* Catalog Section */
     .catalog-section {
       padding: 22px 24px;
       background: var(--bg-surface);
@@ -723,7 +751,7 @@ export class DashboardServer {
       line-height: 1.3;
     }
     .catalog-item a:hover {
-      color: var(--ag-blue);
+      color: var(--sig-blue);
       text-decoration: underline;
     }
     .price-tag {
@@ -752,10 +780,10 @@ export class DashboardServer {
   <div class="shell">
     <div class="topbar">
       <div class="brand">
-        <div class="brand-mark">AG</div>
+        <img class="brand-logo-img" src="/assets/logo.png" alt="Logo" />
         <div class="brand-title">
           <h1>ROBLOX GLOBAL SPLIT-TUNNEL // CONTROL MATRIX</h1>
-          <p>ANTIGRAVITY ROUTING ENGINE — *.ROBLOX.COM TUNNELED / UDP GAMEPLAY DIRECT ISP</p>
+          <p>SPLIT-ROUTING ENGINE — *.ROBLOX.COM TUNNELED / UDP GAMEPLAY DIRECT ISP</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -794,17 +822,18 @@ export class DashboardServer {
           <h2>01 // SPLIT-TUNNEL ROUTING MATRIX</h2>
           <code id="pacUrl">http://127.0.0.1:7899/proxy.pac</code>
         </div>
+        <img class="schematic-banner" src="/assets/banner.png" alt="Split-Tunnel Routing Schematic" />
         <div class="schematic-grid">
           <div class="schematic-col">
-            <strong style="color:var(--ag-blue);">■ LANE A: GLOBAL TUNNEL</strong>
+            <strong style="color:var(--sig-blue);">■ LANE A: GLOBAL TUNNEL</strong>
             <span class="muted">*.roblox.com, auth, catalog, gamejoin</span>
           </div>
           <div class="schematic-col">
-            <strong style="color:var(--ag-green);">■ LANE B: DIRECT ISP</strong>
+            <strong style="color:var(--sig-green);">■ LANE B: DIRECT ISP</strong>
             <span class="muted">UDP 49152-65535 & *.rbxcdn.com</span>
           </div>
           <div class="schematic-col">
-            <strong style="color:var(--ag-red);">■ LANE C: VNG SINKHOLE</strong>
+            <strong style="color:var(--sig-red);">■ LANE C: VNG SINKHOLE</strong>
             <span class="muted">Blocks vnggames.com migration</span>
           </div>
         </div>
@@ -868,7 +897,7 @@ export class DashboardServer {
             <button class="secondary" onclick="bindGlobalProtocol()">LOCK ROBLOX-PLAYER: URI</button>
           </div>
         </div>
-        <div id="bootstrapStatus" style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--ag-blue);"></div>
+        <div id="bootstrapStatus" style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--sig-blue);"></div>
       </div>
 
       <!-- 04 // REAL-TIME PACKET TELEMETRY -->
@@ -1044,7 +1073,7 @@ export class DashboardServer {
       box.innerHTML =
         '<div><strong>DIRECT GAMEPLAY ISP :</strong> ' + r.directIp + ' (' + r.directCountryCode + ' // ' + r.directIsp + ')</div>' +
         '<div><strong>*.ROBLOX.COM EXIT   :</strong> ' + (r.proxiedIp || 'Direct') + ' (' + r.proxiedCountryCode + ')</div>' +
-        '<div style="margin-top:6px;font-weight:700;color:' + (r.vngRiskLevel === 'VNG_LOCK_RISK' ? 'var(--ag-red)' : 'var(--ag-green)') + ';">' + r.summary + '</div>';
+        '<div style="margin-top:6px;font-weight:700;color:' + (r.vngRiskLevel === 'VNG_LOCK_RISK' ? 'var(--sig-red)' : 'var(--sig-green)') + ';">' + r.summary + '</div>';
       await refreshState();
     }
 
@@ -1102,7 +1131,7 @@ export class DashboardServer {
       const res = await fetch('/api/catalog/search?keyword=' + encodeURIComponent(kw));
       const data = await res.json();
       if (data.error) {
-        grid.innerHTML = '<div style="padding:14px;color:var(--ag-red);">' + data.error + '</div>';
+        grid.innerHTML = '<div style="padding:14px;color:var(--sig-red);">' + data.error + '</div>';
         return;
       }
       grid.innerHTML = (data.items || []).map(item =>

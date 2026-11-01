@@ -22,14 +22,21 @@ namespace RobloxGlobalSplitSetup
 
         public SetupWizardForm()
         {
-            Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL SETUP (v1.0.0)";
+            Text = "ROBLOX GLOBAL SPLIT-TUNNEL SETUP (v1.0.0)";
             Size = new Size(580, 410);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.FromArgb(255, 255, 255);
             ForeColor = Color.FromArgb(10, 10, 10);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
-            Icon = SystemIcons.Shield;
+            try
+            {
+                Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            }
+            catch
+            {
+                Icon = SystemIcons.Shield;
+            }
 
             Panel banner = new Panel
             {
@@ -48,7 +55,7 @@ namespace RobloxGlobalSplitSetup
 
             Label lblTitle = new Label
             {
-                Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL INSTALLER",
+                Text = "ROBLOX GLOBAL SPLIT-TUNNEL INSTALLER",
                 Font = new Font("Consolas", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(10, 10, 10),
                 AutoSize = true,
@@ -223,15 +230,16 @@ namespace RobloxGlobalSplitSetup
                     });
 
                     string exePath = Path.Combine(targetDir, "RobloxGlobalLauncher.exe");
+                    string icoPath = Path.Combine(targetDir, "assets", "app.ico");
                     if (makeDesktop)
                     {
                         string desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                        CreateShortcut(Path.Combine(desktopDir, "Roblox Global Split-Tunnel.lnk"), exePath, targetDir);
+                        CreateShortcut(Path.Combine(desktopDir, "Roblox Global Split-Tunnel.lnk"), exePath, targetDir, icoPath);
                     }
                     if (makeStartMenu)
                     {
                         string startMenuDir = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
-                        CreateShortcut(Path.Combine(startMenuDir, "Roblox Global Split-Tunnel.lnk"), exePath, targetDir);
+                        CreateShortcut(Path.Combine(startMenuDir, "Roblox Global Split-Tunnel.lnk"), exePath, targetDir, icoPath);
                     }
 
                     BeginInvoke(new Action(() =>
@@ -321,7 +329,7 @@ namespace RobloxGlobalSplitSetup
             }
         }
 
-        public static void CreateShortcut(string shortcutPath, string targetExe, string workingDir)
+        public static void CreateShortcut(string shortcutPath, string targetExe, string workingDir, string iconPath)
         {
             try
             {
@@ -332,6 +340,10 @@ namespace RobloxGlobalSplitSetup
                 Type scType = shortcut.GetType();
                 scType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortcut, new object[] { targetExe });
                 scType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortcut, new object[] { workingDir });
+                if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
+                {
+                    scType.InvokeMember("IconLocation", BindingFlags.SetProperty, null, shortcut, new object[] { iconPath });
+                }
                 scType.InvokeMember("Description", BindingFlags.SetProperty, null, shortcut, new object[] { "Roblox Global Split-Tunnel & Bootstrapper" });
                 scType.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortcut, null);
             }

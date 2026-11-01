@@ -33,7 +33,11 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
   const releaseDir = path.join(rootDir, "release");
   fs.mkdirSync(releaseDir, { recursive: true });
 
-  // 2. Compile RobloxGlobalLauncher.exe
+  const assetsDir = path.join(rootDir, "assets");
+  const appIcoPath = path.join(assetsDir, "app.ico");
+  const win32IconArg = fs.existsSync(appIcoPath) ? [`/win32icon:${appIcoPath}`] : [];
+
+  // 2. Compile RobloxGlobalLauncher.exe with custom Nano Banana .ico
   const launcherCs = path.join(rootDir, "native", "RobloxGlobalLauncher.cs");
   const launcherExePath = path.join(rootDir, "RobloxGlobalLauncher.exe");
 
@@ -41,6 +45,7 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
     "/nologo",
     "/target:winexe",
     `/out:${launcherExePath}`,
+    ...win32IconArg,
     "/r:System.dll",
     "/r:System.Drawing.dll",
     "/r:System.Windows.Forms.dll",
@@ -55,7 +60,7 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
     "utf8"
   );
 
-  // 4. Build the Portable Release ZIP (containing RobloxGlobalLauncher.exe, dist/, node_modules/, .runtime/)
+  // 4. Build the Portable Release ZIP (containing RobloxGlobalLauncher.exe, assets/, dist/, node_modules/, .runtime/)
   const portableZipPath = path.join(
     releaseDir,
     "RobloxGlobalSplitLauncher-v1.0.0-win-x64.zip"
@@ -68,6 +73,9 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
   if (fs.existsSync(path.join(rootDir, "README.md"))) {
     zip.addLocalFile(path.join(rootDir, "README.md"));
   }
+  if (fs.existsSync(assetsDir)) {
+    zip.addLocalFolder(assetsDir, "assets");
+  }
   zip.addLocalFolder(path.join(rootDir, "dist"), "dist");
   zip.addLocalFolder(path.join(rootDir, "node_modules"), "node_modules");
   zip.addLocalFile(singBoxPath, ".runtime/bin");
@@ -79,7 +87,7 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
   zip.writeZip(portableZipPath);
   const portableZipBytes = fs.statSync(portableZipPath).size;
 
-  // 5. Compile RobloxGlobalSplitSetup.exe with the portable ZIP embedded as a manifest resource
+  // 5. Compile RobloxGlobalSplitSetup.exe with the portable ZIP and Nano Banana .ico
   const setupCs = path.join(rootDir, "native", "RobloxGlobalSplitSetup.cs");
   const installerExePath = path.join(releaseDir, "RobloxGlobalSplitSetup.exe");
 
@@ -87,6 +95,7 @@ export async function buildReleaseArtifacts(rootDir = process.cwd()): Promise<Bu
     "/nologo",
     "/target:winexe",
     `/out:${installerExePath}`,
+    ...win32IconArg,
     "/r:System.dll",
     "/r:System.Drawing.dll",
     "/r:System.Windows.Forms.dll",

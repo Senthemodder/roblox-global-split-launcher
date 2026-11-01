@@ -26,14 +26,17 @@ namespace RobloxGlobalSplit
         public LauncherForm()
         {
             appBaseDir = AppDomain.CurrentDomain.BaseDirectory;
-            Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL & BOOTSTRAPPER";
+            Text = "ROBLOX GLOBAL SPLIT-TUNNEL & BOOTSTRAPPER";
             Size = new Size(660, 450);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.FromArgb(255, 255, 255);
             ForeColor = Color.FromArgb(10, 10, 10);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-            Icon = SystemIcons.Shield;
+
+            string customIcoPath = Path.Combine(appBaseDir, "assets", "app.ico");
+            Icon appIcon = File.Exists(customIcoPath) ? new Icon(customIcoPath) : SystemIcons.Shield;
+            Icon = appIcon;
 
             Panel headerPanel = new Panel
             {
@@ -51,13 +54,28 @@ namespace RobloxGlobalSplit
             };
             headerPanel.Controls.Add(headerBottomLine);
 
+            string logoPngPath = Path.Combine(appBaseDir, "assets", "logo.png");
+            if (File.Exists(logoPngPath))
+            {
+                PictureBox logoBox = new PictureBox
+                {
+                    Image = Image.FromFile(logoPngPath),
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    Location = new Point(18, 12),
+                    Size = new Size(46, 46),
+                    BackColor = Color.White,
+                    BorderStyle = BorderStyle.FixedSingle
+                };
+                headerPanel.Controls.Add(logoBox);
+            }
+
             Label titleLabel = new Label
             {
-                Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL ENGINE",
+                Text = "ROBLOX GLOBAL SPLIT-TUNNEL ENGINE",
                 Font = new Font("Consolas", 12F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(10, 10, 10),
                 AutoSize = true,
-                Location = new Point(18, 14)
+                Location = new Point(74, 14)
             };
 
             statusLabel = new Label
@@ -66,7 +84,7 @@ namespace RobloxGlobalSplit
                 Font = new Font("Consolas", 8.8F, FontStyle.Regular),
                 ForeColor = Color.FromArgb(0, 82, 255),
                 AutoSize = true,
-                Location = new Point(18, 40)
+                Location = new Point(74, 40)
             };
 
             headerPanel.Controls.Add(titleLabel);
@@ -119,7 +137,7 @@ namespace RobloxGlobalSplit
             trayIcon = new NotifyIcon
             {
                 Text = "Roblox Global Split-Tunnel (Active)",
-                Icon = SystemIcons.Shield,
+                Icon = appIcon,
                 ContextMenu = trayMenu,
                 Visible = true
             };
@@ -274,7 +292,7 @@ namespace RobloxGlobalSplit
         private void HideToTray()
         {
             Hide();
-            trayIcon.ShowBalloonTip(2000, "Roblox Global Split-Tunnel", "Running in background. Double-click the shield icon to restore.", ToolTipIcon.Info);
+            trayIcon.ShowBalloonTip(2000, "Roblox Global Split-Tunnel", "Running in background. Double-click the icon to restore.", ToolTipIcon.Info);
         }
 
         private void ShowFromTray()

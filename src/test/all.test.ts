@@ -274,6 +274,17 @@ test("DashboardServer serves Desktop Control Center HTML and manages upstream pr
     assert.match(htmlText, /ROBLOX GLOBAL SPLIT-TUNNEL \/\/ CONTROL MATRIX/);
     assert.match(htmlText, /border-radius:\s*0\s*!important/);
     assert.match(htmlText, /--bg-surface:\s*#FFFFFF/);
+    assert.equal(/antigravity/i.test(htmlText), false, "HTML must not contain Antigravity references");
+
+    const logoResp = await fetch(`http://127.0.0.1:${uiPort}/assets/logo.png`);
+    assert.equal(logoResp.status, 200);
+    const logoBytes = await logoResp.arrayBuffer();
+    assert.ok(logoBytes.byteLength > 1000, "Nano Banana logo.png must be served");
+
+    const bannerResp = await fetch(`http://127.0.0.1:${uiPort}/assets/banner.png`);
+    assert.equal(bannerResp.status, 200);
+    const bannerBytes = await bannerResp.arrayBuffer();
+    assert.ok(bannerBytes.byteLength > 5000, "Nano Banana banner.png must be served");
 
     const addResp = await fetch(`http://127.0.0.1:${uiPort}/api/upstreams/uri`, {
       method: "POST",
@@ -350,6 +361,18 @@ test("Release packager compiles RobloxGlobalLauncher.exe, builds ZIP, and compil
     assert.ok(
       fs.existsSync(path.join(tempInstallTarget, ".runtime", "bin", "sing-box.exe")),
       "Installer must extract bundled sing-box.exe"
+    );
+    assert.ok(
+      fs.existsSync(path.join(tempInstallTarget, "assets", "logo.png")),
+      "Installer must extract Nano Banana assets/logo.png"
+    );
+    assert.ok(
+      fs.existsSync(path.join(tempInstallTarget, "assets", "banner.png")),
+      "Installer must extract Nano Banana assets/banner.png"
+    );
+    assert.ok(
+      fs.existsSync(path.join(tempInstallTarget, "assets", "app.ico")),
+      "Installer must extract Nano Banana assets/app.ico"
     );
   } finally {
     if (fs.existsSync(tempInstallTarget)) {
