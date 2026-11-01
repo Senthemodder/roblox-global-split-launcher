@@ -1,0 +1,25 @@
+{
+  "name": "roblox-global-split-launcher",
+  "version": "1.0.0",
+  "description": "Windows Desktop App & Bootstrapper that installs/launches Global Roblox and split-tunnels only *.roblox.com API traffic while keeping UDP gameplay on direct ISP connection.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "roblox-global": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js ui",
+    "cli": "node dist/cli.js",
+    "package": "node dist/cli.js package",
+    "test": "node --test dist/test/all.test.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
