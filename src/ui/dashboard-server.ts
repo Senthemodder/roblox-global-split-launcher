@@ -12,7 +12,10 @@ import {
 import { parseTunnelUri } from "../proxy/domain-rules.js";
 import { generateSingBoxConfig } from "../proxy/singbox-config.js";
 import { SingBoxBridgeRunner } from "../proxy/singbox-runner.js";
-import { provisionCloudflareWarpTunnel } from "../proxy/warp-provisioner.js";
+import {
+  discoverVerifiedNonVnRelay,
+  provisionCloudflareWarpTunnel
+} from "../proxy/warp-provisioner.js";
 import {
   detectLocalInstallations,
   downloadGlobalBootstrapperExe,
@@ -82,11 +85,21 @@ export class DashboardServer {
       active.protocol === "vless" ||
       active.protocol === "shadowsocks"
     ) {
-      const bridgePort = await this.singBoxRunner.startWithUpstream(
-        active,
-        this.store.getSettings()
-      );
-      this.splitProxy.updateSettings(this.store.getSettings(), bridgePort);
+      try {
+        const bridgePort = await this.singBoxRunner.startWithUpstream(
+          active,
+          this.store.getSettings()
+        );
+        this.splitProxy.updateSettings(this.store.getSettings(), bridgePort);
+      } catch (err) {
+        console.error(
+          `[SingBoxRunner] Warning: failed to start sing-box bridge: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+        await this.singBoxRunner.stop();
+        this.splitProxy.updateSettings(this.store.getSettings(), undefined);
+      }
     } else {
       await this.singBoxRunner.stop();
       this.splitProxy.updateSettings(this.store.getSettings(), undefined);
@@ -261,6 +274,21 @@ export class DashboardServer {
       this.splitProxy.updateSettings(updated);
       await this.syncActiveUpstreamEngine();
       sendJson(res, 200, { added: warpTunnel, settings: updated });
+      return;
+    }
+
+    if (method === "POST" && pathname === "/api/upstreams/discover-relay") {
+      const relay = await discoverVerifiedNonVnRelay();
+      if (!relay) {
+        sendJson(res, 404, {
+          error: "No live public non-VN relay passed the catalog handshake test right now. Try again or use a custom SOCKS5/WireGuard/VLESS URI."
+        });
+        return;
+      }
+      const updated = this.store.addUpstream(relay, true);
+      this.splitProxy.updateSettings(updated);
+      await this.syncActiveUpstreamEngine();
+      sendJson(res, 200, { added: relay, settings: updated });
       return;
     }
 
@@ -860,7 +888,10 @@ export class DashboardServer {
       <div class="panel">
         <div class="panel-head">
           <h2>02 // UPSTREAM NON-VN NODES</h2>
-          <button class="secondary" onclick="provisionWarp()" id="btnProvisionWarp">AUTO-WIRE CLOUDFLARE WARP</button>
+          <div style="display:flex;gap:6px;">
+            <button class="secondary" onclick="discoverRelay()" id="btnDiscoverRelay">SCAN NON-VN RELAY</button>
+            <button class="secondary" onclick="provisionWarp()" id="btnProvisionWarp">AUTO-WIRE WARP</button>
+          </div>
         </div>
         <label class="field-label">ADD TUNNEL URI (SOCKS5 / HTTP / WIREGUARD / VLESS / SHADOWSOCKS)</label>
         <div style="display:flex;gap:8px;">
@@ -1025,7 +1056,21 @@ export class DashboardServer {
       btn.textContent = 'PROVISIONING WARP...';
       const res = await fetch('/api/upstreams/provision-warp', { method: 'POST' });
       const data = await res.json();
-      btn.textContent = 'AUTO-WIRE CLOUDFLARE WARP';
+      btn.textContent = 'AUTO-WIRE WARP';
+      if (data.error) {
+        alert(data.error);
+      } else {
+        await refreshState();
+        await runRegionCheck();
+      }
+    }
+
+    async function discoverRelay() {
+      const btn = document.getElementById('btnDiscoverRelay');
+      btn.textContent = 'SCANNING RELAYS...';
+      const res = await fetch('/api/upstreams/discover-relay', { method: 'POST' });
+      const data = await res.json();
+      btn.textContent = 'SCAN NON-VN RELAY';
       if (data.error) {
         alert(data.error);
       } else {

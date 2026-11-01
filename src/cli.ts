@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { ConfigStore } from "./config-store.js";
@@ -23,6 +24,41 @@ import {
 } from "./catalog/global-catalog.js";
 import { DashboardServer, openDesktopAppWindow } from "./ui/dashboard-server.js";
 import { buildReleaseArtifacts } from "./packager/build-release.js";
+
+function freeStaleLocalPorts(ports: number[]): void {
+  if (process.platform !== "win32") {
+    return;
+  }
+  try {
+    const out = execFileSync("netstat.exe", ["-ano", "-p", "tcp"], {
+      encoding: "utf8",
+      windowsHide: true
+    });
+    const lines = out.split(/\r?\n/);
+    const killed = new Set<number>();
+    for (const line of lines) {
+      if (!line.includes("LISTENING")) {
+        continue;
+      }
+      for (const port of ports) {
+        if (line.includes(`127.0.0.1:${port} `) || line.includes(`0.0.0.0:${port} `)) {
+          const parts = line.trim().split(/\s+/);
+          const pid = Number(parts[parts.length - 1]);
+          if (Number.isInteger(pid) && pid > 0 && pid !== process.pid && !killed.has(pid)) {
+            killed.add(pid);
+            try {
+              process.kill(pid);
+            } catch {
+              // Ignore if already exited
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore netstat errors
+  }
+}
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -213,21 +249,30 @@ async function main(): Promise<void> {
   }
 
   if (command === "ui") {
-    const activeUpstream = await store.ensureDefaultWiredUpstream();
-    const settings = store.getSettings();
+    freeStaleLocalPorts([7897, 7898, 7899]);
     const sbRunner = new SingBoxBridgeRunner(7897);
-    const splitProxy = new SplitTunnelProxyServer(settings);
+    const splitProxy = new SplitTunnelProxyServer(store.getSettings());
     const proxyPort = await splitProxy.start();
     const dashboard = new DashboardServer(store, splitProxy, 7898, sbRunner);
-    await dashboard.syncActiveUpstreamEngine();
     const uiPort = await dashboard.start();
     const url = `http://127.0.0.1:${uiPort}`;
 
+    try {
+      const activeUpstream = await store.ensureDefaultWiredUpstream();
+      splitProxy.updateSettings(store.getSettings());
+      await dashboard.syncActiveUpstreamEngine();
+      console.log(`Default Wired Tunnel        : ${activeUpstream.name} (${activeUpstream.protocol})`);
+    } catch (err) {
+      console.error(
+        `Upstream initialization note: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+
+    const settings = store.getSettings();
     if (settings.autoConfigureWindowsPac) {
       await enableWindowsPac(splitProxy.getPacUrl());
     }
 
-    console.log(`Default Wired Tunnel        : ${activeUpstream.name} (${activeUpstream.protocol})`);
     console.log(`Split-Tunnel Proxy          : 127.0.0.1:${proxyPort}`);
     console.log(`PAC Auto-Configuration URL  : ${splitProxy.getPacUrl()}`);
     console.log(`Desktop Control Center UI   : ${url}`);

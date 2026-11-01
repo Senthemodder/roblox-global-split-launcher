@@ -9,6 +9,7 @@ import { SplitTunnelSettings, UpstreamTunnelConfig } from "../types.js";
 
 export const SINGBOX_VERSION = "1.10.7";
 export const SINGBOX_RELEASE_URL = `https://github.com/SagerNet/sing-box/releases/download/v${SINGBOX_VERSION}/sing-box-${SINGBOX_VERSION}-windows-amd64.zip`;
+const MIN_VALID_SINGBOX_BYTES = 20_000_000;
 
 function httpsDownloadBuffer(url: string, timeoutMs = 60000): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -52,13 +53,21 @@ export function getSingBoxBinaryPath(baseDir = process.cwd()): string {
 }
 
 /**
- * Ensures the official sing-box.exe binary is present in .runtime/bin/sing-box.exe,
- * downloading and extracting it from GitHub Releases if missing.
+ * Ensures the official sing-box.exe binary is present and intact (>20MB) in .runtime/bin/sing-box.exe,
+ * downloading and atomically extracting it from GitHub Releases if missing or truncated.
  */
 export async function ensureSingBoxBinary(baseDir = process.cwd()): Promise<string> {
   const exePath = getSingBoxBinaryPath(baseDir);
   if (fs.existsSync(exePath)) {
-    return exePath;
+    try {
+      const stat = fs.statSync(exePath);
+      if (stat.size >= MIN_VALID_SINGBOX_BYTES) {
+        return exePath;
+      }
+      fs.unlinkSync(exePath);
+    } catch {
+      // Proceed to re-download
+    }
   }
 
   const binDir = path.dirname(exePath);
@@ -73,7 +82,13 @@ export async function ensureSingBoxBinary(baseDir = process.cwd()): Promise<stri
   }
 
   const extractedData = exeEntry.getData();
-  fs.writeFileSync(exePath, extractedData);
+  if (extractedData.length < MIN_VALID_SINGBOX_BYTES) {
+    throw new Error(`Extracted sing-box.exe is unexpectedly small (${extractedData.length} bytes)`);
+  }
+
+  const tmpPath = `${exePath}.tmp-${process.pid}`;
+  fs.writeFileSync(tmpPath, extractedData);
+  fs.renameSync(tmpPath, exePath);
   return exePath;
 }
 
@@ -139,8 +154,6 @@ export class SingBoxBridgeRunner {
       },
       false
     );
-    // All traffic forwarded by SplitTunnelProxyServer into the local sing-box bridge port
-    // has already been selected for GLOBAL_TUNNEL routing, so final outbound must be global-exit.
     cfg.route.final = "global-exit";
 
     const cfgPath = path.join(this.baseDir, ".runtime", "singbox-active.json");
@@ -165,6 +178,9 @@ export class SingBoxBridgeRunner {
 
     proc.stdout?.on("data", recordOutput);
     proc.stderr?.on("data", recordOutput);
+    proc.once("error", (err) => {
+      this.lastLogs.push(`spawn error: ${err.message}`);
+    });
     proc.once("exit", () => {
       if (this.child === proc) {
         this.child = null;
@@ -182,7 +198,11 @@ export class SingBoxBridgeRunner {
     }
     const proc = this.child;
     this.child = null;
-    proc.kill();
+    try {
+      proc.kill();
+    } catch {
+      return;
+    }
     await new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, 1500);
       proc.once("exit", () => {

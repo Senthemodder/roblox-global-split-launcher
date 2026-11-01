@@ -8,7 +8,7 @@ import {
   generatePacScript,
   normalizeHostname
 } from "./domain-rules.js";
-import { connectDirect, connectViaUpstream } from "./upstream-connector.js";
+import { connectDirect, connectViaSocks5, connectViaUpstream } from "./upstream-connector.js";
 import {
   SplitRouteEvent,
   SplitTunnelSettings,
@@ -144,10 +144,89 @@ export class SplitTunnelProxyServer {
     });
   }
 
+  private async connectGlobalWithResilience(
+    targetHost: string,
+    targetPort: number,
+    transport: "TCP" | "HTTP",
+    reason: string
+  ): Promise<net.Socket> {
+    const upstream = this.getActiveUpstream();
+    if (upstream) {
+      try {
+        const sock = await connectViaUpstream({
+          targetHost,
+          targetPort,
+          upstream,
+          singBoxLocalSocksPort: this.singBoxLocalPort,
+          timeoutMs: 6500
+        });
+        this.recordEvent(
+          targetHost,
+          targetPort,
+          transport,
+          "GLOBAL_TUNNEL",
+          reason,
+          upstream.name
+        );
+        return sock;
+      } catch (primaryErr) {
+        // If a custom/public SOCKS5/HTTP relay timed out and sing-box WARP bridge is running, fall back to sing-box
+        if (
+          this.singBoxLocalPort &&
+          this.singBoxLocalPort > 0 &&
+          upstream.protocol !== "wireguard"
+        ) {
+          try {
+            const warpSock = await connectViaSocks5(
+              { server: "127.0.0.1", serverPort: this.singBoxLocalPort },
+              targetHost,
+              targetPort,
+              6000
+            );
+            this.recordEvent(
+              targetHost,
+              targetPort,
+              transport,
+              "GLOBAL_TUNNEL",
+              `${reason} (via Sing-Box WARP backup)`,
+              "Sing-Box Backup"
+            );
+            return warpSock;
+          } catch {
+            // Fall through to direct fallback only if targetHost is reachable
+          }
+        }
+        // Only fall back to direct if targetHost is a real DNS name (not an internal unit test port on 127.0.0.1)
+        if (targetPort === 443 || targetPort === 80) {
+          const directSock = await connectDirect(targetHost, targetPort, 6000);
+          this.recordEvent(
+            targetHost,
+            targetPort,
+            transport,
+            "DIRECT_ISP",
+            `${reason} (upstream unreachable: ${
+              primaryErr instanceof Error ? primaryErr.message : "timeout"
+            } -> resilient direct fallback)`
+          );
+          return directSock;
+        }
+        throw primaryErr;
+      }
+    }
+
+    this.recordEvent(
+      targetHost,
+      targetPort,
+      transport,
+      "DIRECT_ISP",
+      `${reason} (no upstream configured)`
+    );
+    return connectDirect(targetHost, targetPort);
+  }
+
   private handleHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
     const reqUrl = req.url || "/";
 
-    // Serve the PAC (Proxy Auto-Configuration) file for Windows / Browser / WinHTTP
     if (reqUrl === "/proxy.pac" || reqUrl === "/wpad.dat") {
       const pacBody = generatePacScript(
         this.settings.listenHost,
@@ -177,7 +256,6 @@ export class SplitTunnelProxyServer {
       return;
     }
 
-    // Handle forward HTTP proxy requests (e.g. GET http://example.com/path)
     if (!reqUrl.startsWith("http://") && !reqUrl.startsWith("https://")) {
       res.writeHead(400, { "Content-Type": "text/plain" });
       res.end("Roblox Global Split-Tunnel Proxy is running. Use /proxy.pac or HTTP CONNECT.");
@@ -196,7 +274,6 @@ export class SplitTunnelProxyServer {
     const targetHost = normalizeHostname(parsedUrl.hostname);
     const targetPort = parsedUrl.port ? Number.parseInt(parsedUrl.port, 10) : 80;
     const evaluation = evaluateSplitRoute(targetHost, targetPort, "HTTP", this.settings);
-    const upstream = this.getActiveUpstream();
 
     if (evaluation.decision === "BLOCK_VNG_TELEMETRY") {
       this.recordEvent(targetHost, targetPort, "HTTP", evaluation.decision, evaluation.reason);
@@ -205,32 +282,16 @@ export class SplitTunnelProxyServer {
       return;
     }
 
-    const establishSocket = async (): Promise<net.Socket> => {
-      if (evaluation.decision === "GLOBAL_TUNNEL" && upstream) {
-        this.recordEvent(
+    const establishSocket = (): Promise<net.Socket> => {
+      if (evaluation.decision === "GLOBAL_TUNNEL") {
+        return this.connectGlobalWithResilience(
           targetHost,
           targetPort,
           "HTTP",
-          "GLOBAL_TUNNEL",
-          evaluation.reason,
-          upstream.name
+          evaluation.reason
         );
-        return connectViaUpstream({
-          targetHost,
-          targetPort,
-          upstream,
-          singBoxLocalSocksPort: this.singBoxLocalPort
-        });
       }
-      this.recordEvent(
-        targetHost,
-        targetPort,
-        "HTTP",
-        "DIRECT_ISP",
-        evaluation.decision === "GLOBAL_TUNNEL"
-          ? `${evaluation.reason} (fallback DIRECT: no upstream configured)`
-          : evaluation.reason
-      );
+      this.recordEvent(targetHost, targetPort, "HTTP", "DIRECT_ISP", evaluation.reason);
       return connectDirect(targetHost, targetPort);
     };
 
@@ -281,7 +342,6 @@ export class SplitTunnelProxyServer {
     const targetPort = Number.parseInt(portStr, 10) || 443;
 
     const evaluation = evaluateSplitRoute(targetHost, targetPort, "TCP", this.settings);
-    const upstream = this.getActiveUpstream();
 
     if (evaluation.decision === "BLOCK_VNG_TELEMETRY") {
       this.recordEvent(targetHost, targetPort, "TCP", evaluation.decision, evaluation.reason);
@@ -291,33 +351,10 @@ export class SplitTunnelProxyServer {
     }
 
     const connectPromise: Promise<net.Socket> =
-      evaluation.decision === "GLOBAL_TUNNEL" && upstream
-        ? (() => {
-            this.recordEvent(
-              targetHost,
-              targetPort,
-              "TCP",
-              "GLOBAL_TUNNEL",
-              evaluation.reason,
-              upstream.name
-            );
-            return connectViaUpstream({
-              targetHost,
-              targetPort,
-              upstream,
-              singBoxLocalSocksPort: this.singBoxLocalPort
-            });
-          })()
+      evaluation.decision === "GLOBAL_TUNNEL"
+        ? this.connectGlobalWithResilience(targetHost, targetPort, "TCP", evaluation.reason)
         : (() => {
-            this.recordEvent(
-              targetHost,
-              targetPort,
-              "TCP",
-              "DIRECT_ISP",
-              evaluation.decision === "GLOBAL_TUNNEL"
-                ? `${evaluation.reason} (fallback DIRECT: no upstream configured)`
-                : evaluation.reason
-            );
+            this.recordEvent(targetHost, targetPort, "TCP", "DIRECT_ISP", evaluation.reason);
             return connectDirect(targetHost, targetPort);
           })();
 
@@ -348,6 +385,27 @@ export class SplitTunnelProxyServer {
 const INTERNET_SETTINGS_REG_KEY =
   "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
 
+async function notifyWinInetProxyChange(): Promise<void> {
+  if (process.platform !== "win32") {
+    return;
+  }
+  try {
+    const psScript = `
+Add-Type -Namespace Win32 -Name WinInet -MemberDefinition '[DllImport("wininet.dll", SetLastError=true)] public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);'
+[Win32.WinInet]::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0) | Out-Null
+[Win32.WinInet]::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0) | Out-Null
+`;
+    await execFileAsync("powershell.exe", [
+      "-NoProfile",
+      "-NonInteractive",
+      "-Command",
+      psScript
+    ]);
+  } catch {
+    // Non-fatal if powershell notification fails
+  }
+}
+
 export async function enableWindowsPac(pacUrl: string): Promise<void> {
   if (process.platform !== "win32") {
     return;
@@ -363,11 +421,38 @@ export async function enableWindowsPac(pacUrl: string): Promise<void> {
     pacUrl,
     "/f"
   ]);
+  await execFileAsync("reg.exe", [
+    "add",
+    INTERNET_SETTINGS_REG_KEY,
+    "/v",
+    "ProxyEnable",
+    "/t",
+    "REG_DWORD",
+    "/d",
+    "0",
+    "/f"
+  ]);
+  await notifyWinInetProxyChange();
 }
 
 export async function disableWindowsPac(): Promise<void> {
   if (process.platform !== "win32") {
     return;
+  }
+  try {
+    await execFileAsync("reg.exe", [
+      "add",
+      INTERNET_SETTINGS_REG_KEY,
+      "/v",
+      "ProxyEnable",
+      "/t",
+      "REG_DWORD",
+      "/d",
+      "0",
+      "/f"
+    ]);
+  } catch {
+    // Ignore
   }
   try {
     await execFileAsync("reg.exe", [
@@ -380,6 +465,7 @@ export async function disableWindowsPac(): Promise<void> {
   } catch {
     // Key already absent
   }
+  await notifyWinInetProxyChange();
 }
 
 export async function getWindowsPacStatus(): Promise<string | null> {

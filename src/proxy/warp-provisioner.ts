@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import https from "node:https";
-import { WireGuardTunnelConfig } from "../types.js";
+import tls from "node:tls";
+import { UpstreamTunnelConfig, WireGuardTunnelConfig } from "../types.js";
+import { connectViaHttpProxy, connectViaSocks5 } from "./upstream-connector.js";
 
 export interface WarpKeyPair {
   privateKeyBase64: string;
@@ -15,7 +17,6 @@ export function generateWireGuardKeyPair(): WarpKeyPair {
   const privDer = privateKey.export({ type: "pkcs8", format: "der" });
   const pubDer = publicKey.export({ type: "spki", format: "der" });
 
-  // Raw 32-byte key sits at the end of the ASN.1 DER structure
   const rawPriv = privDer.subarray(privDer.length - 32);
   const rawPub = pubDer.subarray(pubDer.length - 32);
 
@@ -116,9 +117,7 @@ export async function provisionCloudflareWarpTunnel(
   const rawResult = (resp as unknown as { result?: CloudflareRegResponse }).result ?? resp;
   const cfg = rawResult.config;
   const v4Addr = cfg?.interface?.addresses?.v4 || "172.16.0.2";
-  const localAddress = [
-    v4Addr.includes("/") ? v4Addr : `${v4Addr}/32`
-  ];
+  const localAddress = [v4Addr.includes("/") ? v4Addr : `${v4Addr}/32`];
 
   const peer = cfg?.peers?.[0];
   const peerPublicKey =
@@ -147,4 +146,142 @@ export async function provisionCloudflareWarpTunnel(
     reserved,
     mtu: 1280
   };
+}
+
+interface ProxyScrapeEntry {
+  alive?: boolean;
+  ssl?: boolean;
+  protocol?: string;
+  ip?: string;
+  port?: number;
+  average_timeout?: number;
+  ip_data?: {
+    countryCode?: string;
+    country?: string;
+  };
+}
+
+function httpsGetText(url: string, timeoutMs = 8000): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { timeout: timeoutMs }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c: Buffer) => chunks.push(c));
+      res.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+      res.on("error", reject);
+    });
+    req.on("timeout", () => req.destroy(new Error("Request timed out")));
+    req.on("error", reject);
+  });
+}
+
+async function verifyRelayAgainstRobloxCatalog(
+  candidate: UpstreamTunnelConfig,
+  timeoutMs = 4500
+): Promise<UpstreamTunnelConfig> {
+  const rawSocket =
+    candidate.protocol === "socks5"
+      ? await connectViaSocks5(candidate, "catalog.roblox.com", 443, timeoutMs)
+      : candidate.protocol === "http"
+      ? await connectViaHttpProxy(candidate, "catalog.roblox.com", 443, timeoutMs)
+      : null;
+
+  if (!rawSocket) {
+    throw new Error("Unsupported candidate protocol");
+  }
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      rawSocket.destroy();
+      reject(new Error("Catalog verification timed out"));
+    }, timeoutMs);
+
+    const tlsSocket = tls.connect({
+      socket: rawSocket,
+      servername: "catalog.roblox.com"
+    });
+
+    const req = https.request(
+      {
+        hostname: "catalog.roblox.com",
+        port: 443,
+        path: "/v1/search/items/details?Category=1&Limit=10",
+        method: "GET",
+        headers: {
+          Host: "catalog.roblox.com",
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        },
+        createConnection: () => tlsSocket,
+        timeout: timeoutMs
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c: Buffer) => chunks.push(c));
+        res.on("end", () => {
+          clearTimeout(timer);
+          tlsSocket.destroy();
+          if (res.statusCode === 200) {
+            resolve(candidate);
+          } else {
+            reject(new Error(`Status ${res.statusCode}`));
+          }
+        });
+      }
+    );
+
+    req.once("error", (err) => {
+      clearTimeout(timer);
+      rawSocket.destroy();
+      reject(err);
+    });
+    req.end();
+  });
+}
+
+/**
+ * Discovers a live, verified Non-Vietnam (SG/HK/JP/US/EU) SOCKS5 or HTTP relay
+ * tested directly against https://catalog.roblox.com.
+ */
+export async function discoverVerifiedNonVnRelay(): Promise<UpstreamTunnelConfig> {
+  const apiUrl =
+    "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=socks5,http&proxy_format=protocolipport&format=json&timeout=1500";
+  const body = await httpsGetText(apiUrl, 8000);
+  const parsed = JSON.parse(body) as { proxies?: ProxyScrapeEntry[] };
+  const preferredCountries = new Set(["SG", "HK", "JP", "TW", "KR", "US", "DE", "NL", "GB", "FR"]);
+
+  const rawList = (parsed.proxies || []).filter(
+    (p) =>
+      p.alive &&
+      p.ssl &&
+      p.ip &&
+      p.port &&
+      p.ip_data?.countryCode &&
+      p.ip_data.countryCode !== "VN" &&
+      (p.protocol === "socks5" || p.protocol === "http")
+  );
+
+  rawList.sort((a, b) => {
+    const aPref = preferredCountries.has(a.ip_data?.countryCode || "") ? 0 : 1;
+    const bPref = preferredCountries.has(b.ip_data?.countryCode || "") ? 0 : 1;
+    if (aPref !== bPref) return aPref - bPref;
+    return (a.average_timeout || 9999) - (b.average_timeout || 9999);
+  });
+
+  const topCandidates: UpstreamTunnelConfig[] = rawList.slice(0, 24).map((p) => {
+    const cc = p.ip_data?.countryCode || "GL";
+    const proto = p.protocol === "socks5" ? "socks5" : "http";
+    return {
+      id: `verified-non-vn-${cc.toLowerCase()}-${p.ip}-${p.port}`,
+      name: `Global Non-VN Relay [${cc}] (${p.ip}:${p.port})`,
+      protocol: proto,
+      server: p.ip!,
+      serverPort: p.port!
+    };
+  });
+
+  if (topCandidates.length === 0) {
+    throw new Error("No candidate non-VN relays returned from feed");
+  }
+
+  return Promise.any(topCandidates.map((c) => verifyRelayAgainstRobloxCatalog(c, 4500)));
 }

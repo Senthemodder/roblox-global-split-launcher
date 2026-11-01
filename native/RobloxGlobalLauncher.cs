@@ -180,6 +180,19 @@ namespace RobloxGlobalSplit
         {
             try
             {
+                int currentPid = Process.GetCurrentProcess().Id;
+                foreach (Process existing in Process.GetProcessesByName("RobloxGlobalLauncher"))
+                {
+                    if (existing.Id != currentPid)
+                    {
+                        try { existing.Kill(); } catch { }
+                    }
+                }
+                foreach (Process sb in Process.GetProcessesByName("sing-box"))
+                {
+                    try { sb.Kill(); } catch { }
+                }
+
                 string cliScript = Path.Combine(appBaseDir, "dist", "cli.js");
                 if (!File.Exists(cliScript))
                 {
@@ -191,7 +204,7 @@ namespace RobloxGlobalSplit
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
                     FileName = "node.exe",
-                    Arguments = "\"" + cliScript + "\" ui",
+                    Arguments = "\"" + cliScript + "\" ui --no-window",
                     WorkingDirectory = appBaseDir,
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -210,6 +223,7 @@ namespace RobloxGlobalSplit
                             BeginInvoke(new Action(() =>
                             {
                                 statusLabel.Text = "STATUS: WIRED // *.ROBLOX.COM TUNNELED | UDP GAMEPLAY DIRECT ISP";
+                                OpenControlCenterWindow();
                             }));
                         }
                     }
@@ -308,9 +322,13 @@ namespace RobloxGlobalSplit
             {
                 using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true))
                 {
-                    if (key != null && key.GetValue("AutoConfigURL") != null)
+                    if (key != null)
                     {
-                        key.DeleteValue("AutoConfigURL", false);
+                        if (key.GetValue("AutoConfigURL") != null)
+                        {
+                            key.DeleteValue("AutoConfigURL", false);
+                        }
+                        key.SetValue("ProxyEnable", 0, RegistryValueKind.DWord);
                     }
                 }
             }

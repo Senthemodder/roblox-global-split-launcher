@@ -1,5 +1,7 @@
 # Task Instructions
 
+- [x] "doesnt seem to work anymore" (user, verbatim)
+  - Evidence: Fixed truncated `sing-box.exe` (`spawn EFTYPE` when `stat.size < 20_000_000`), added `freeStaleLocalPorts([7897, 7898, 7899])`, resilient fallback in `connectGlobalWithResilience()`, WinINet `InternetSetOption` refresh, and non-VN relay scanner; reinstalled into `C:\Users\Dell\AppData\Local\Programs\RobloxGlobalSplitLauncher` (`Installed sing-box.exe bytes: 32230912`), verified live ports (`127.0.0.1:7899 Listen 20264 | 127.0.0.1:7898 Listen 20264 | 127.0.0.1:7897 Listen 29684`), `Catalog Search -> items=9 first=Valkyrie Helm`, and `Direct Proxy 127.0.0.1:7899 HTTPS CONNECT catalog.roblox.com -> HTTP 200`.
 - [x] "remove stuff related to anti gravity, also uise nano banana to generate the assets" (user, verbatim)
   - Evidence: Generated `assets/logo.png` (15082 bytes), `assets/banner.png` (173764 bytes), `assets/matrix.png` (1101541 bytes), and multi-resolution `assets/app.ico` (18683 bytes) via Nano Banana (`image-generator`); removed all Antigravity/AG strings; `npm run build; npm run package; npm test` -> `Created Portable ZIP : D:\Users\Dell\Documents\GitHub\roblox-global-split-launcher\release\RobloxGlobalSplitLauncher-v1.0.0-win-x64.zip (17.68 MB) | Created Setup Installer : D:\Users\Dell\Documents\GitHub\roblox-global-split-launcher\release\RobloxGlobalSplitSetup.exe (17.71 MB) | ℹ tests 8 | ℹ pass 8 | ℹ fail 0`.
 - [x] "ui looks too ai, stop with the round corners, make it white and more anti gravity style" (user, verbatim)
