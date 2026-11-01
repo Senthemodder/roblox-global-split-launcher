@@ -271,7 +271,9 @@ test("DashboardServer serves Desktop Control Center HTML and manages upstream pr
     const htmlResp = await fetch(`http://127.0.0.1:${uiPort}/`);
     assert.equal(htmlResp.status, 200);
     const htmlText = await htmlResp.text();
-    assert.match(htmlText, /Roblox Global Split-Tunnel & Bootstrapper/);
+    assert.match(htmlText, /ROBLOX GLOBAL SPLIT-TUNNEL \/\/ CONTROL MATRIX/);
+    assert.match(htmlText, /border-radius:\s*0\s*!important/);
+    assert.match(htmlText, /--bg-surface:\s*#FFFFFF/);
 
     const addResp = await fetch(`http://127.0.0.1:${uiPort}/api/upstreams/uri`, {
       method: "POST",

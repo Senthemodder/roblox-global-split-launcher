@@ -22,11 +22,11 @@ namespace RobloxGlobalSplitSetup
 
         public SetupWizardForm()
         {
-            Text = "Roblox Global Split-Tunnel & Bootstrapper Setup (v1.0.0)";
+            Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL SETUP (v1.0.0)";
             Size = new Size(580, 410);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.FromArgb(11, 15, 25);
-            ForeColor = Color.FromArgb(241, 245, 249);
+            BackColor = Color.FromArgb(255, 255, 255);
+            ForeColor = Color.FromArgb(10, 10, 10);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             Icon = SystemIcons.Shield;
@@ -35,23 +35,31 @@ namespace RobloxGlobalSplitSetup
             {
                 Dock = DockStyle.Top,
                 Height = 76,
-                BackColor = Color.FromArgb(19, 27, 46)
+                BackColor = Color.FromArgb(245, 245, 243)
             };
+
+            Panel bannerBottomLine = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 2,
+                BackColor = Color.FromArgb(10, 10, 10)
+            };
+            banner.Controls.Add(bannerBottomLine);
 
             Label lblTitle = new Label
             {
-                Text = "ROBLOX GLOBAL SPLIT-TUNNEL INSTALLER",
-                Font = new Font("Segoe UI", 13F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(56, 189, 248),
+                Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL INSTALLER",
+                Font = new Font("Consolas", 12F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(10, 10, 10),
                 AutoSize = true,
                 Location = new Point(20, 14)
             };
 
             Label lblSub = new Label
             {
-                Text = "Installs the Default-Wired Split-Tunnel Proxy, Sing-Box Core & Global Bootstrapper",
-                Font = new Font("Segoe UI", 9.2F, FontStyle.Regular),
-                ForeColor = Color.FromArgb(148, 163, 184),
+                Text = "DEFAULT-WIRED SPLIT-TUNNEL PROXY, SING-BOX CORE & GLOBAL BOOTSTRAPPER",
+                Font = new Font("Consolas", 8.5F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(82, 82, 82),
                 AutoSize = true,
                 Location = new Point(20, 42)
             };
@@ -62,8 +70,8 @@ namespace RobloxGlobalSplitSetup
 
             Label lblDir = new Label
             {
-                Text = "Installation Folder:",
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Text = "INSTALLATION DIRECTORY:",
+                Font = new Font("Consolas", 9F, FontStyle.Bold),
                 AutoSize = true,
                 Location = new Point(22, 94)
             };
@@ -80,23 +88,25 @@ namespace RobloxGlobalSplitSetup
                 Text = defaultDir,
                 Location = new Point(22, 118),
                 Size = new Size(430, 26),
-                BackColor = Color.FromArgb(6, 9, 17),
-                ForeColor = Color.White,
+                BackColor = Color.FromArgb(250, 250, 250),
+                ForeColor = Color.FromArgb(10, 10, 10),
                 BorderStyle = BorderStyle.FixedSingle,
-                Font = new Font("Segoe UI", 9.5F)
+                Font = new Font("Consolas", 9.5F)
             };
             Controls.Add(txtInstallDir);
 
             Button btnBrowse = new Button
             {
-                Text = "Browse...",
+                Text = "BROWSE",
                 Location = new Point(460, 116),
-                Size = new Size(86, 27),
-                BackColor = Color.FromArgb(38, 50, 76),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Size = new Size(86, 26),
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(10, 10, 10),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Consolas", 8.5F, FontStyle.Bold)
             };
-            btnBrowse.FlatAppearance.BorderSize = 0;
+            btnBrowse.FlatAppearance.BorderSize = 1;
+            btnBrowse.FlatAppearance.BorderColor = Color.FromArgb(10, 10, 10);
             btnBrowse.Click += (s, e) =>
             {
                 using (FolderBrowserDialog fbd = new FolderBrowserDialog())
@@ -136,18 +146,18 @@ namespace RobloxGlobalSplitSetup
                 Checked = true,
                 AutoSize = true,
                 Location = new Point(22, 222),
-                Font = new Font("Segoe UI", 9.5F),
-                ForeColor = Color.FromArgb(52, 211, 153)
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 82, 255)
             };
             Controls.Add(chkLaunchAfter);
 
             statusLabel = new Label
             {
-                Text = "Ready to install.",
+                Text = "READY TO INSTALL.",
                 AutoSize = true,
                 Location = new Point(22, 264),
-                ForeColor = Color.FromArgb(148, 163, 184),
-                Font = new Font("Segoe UI", 9F)
+                ForeColor = Color.FromArgb(82, 82, 82),
+                Font = new Font("Consolas", 8.8F)
             };
             Controls.Add(statusLabel);
 
@@ -161,30 +171,32 @@ namespace RobloxGlobalSplitSetup
 
             btnInstall = new Button
             {
-                Text = "Install Now",
+                Text = "INSTALL NOW",
                 Location = new Point(316, 326),
                 Size = new Size(130, 36),
-                BackColor = Color.FromArgb(16, 185, 129),
+                BackColor = Color.FromArgb(10, 10, 10),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Font = new Font("Consolas", 9.5F, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            btnInstall.FlatAppearance.BorderSize = 0;
+            btnInstall.FlatAppearance.BorderSize = 1;
+            btnInstall.FlatAppearance.BorderColor = Color.FromArgb(10, 10, 10);
             btnInstall.Click += (s, e) => RunInteractiveInstall();
             Controls.Add(btnInstall);
 
             btnCancel = new Button
             {
-                Text = "Cancel",
+                Text = "CANCEL",
                 Location = new Point(456, 326),
                 Size = new Size(90, 36),
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.FromArgb(203, 213, 225),
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(10, 10, 10),
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5F)
+                Font = new Font("Consolas", 9F, FontStyle.Bold)
             };
-            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.FlatAppearance.BorderSize = 1;
+            btnCancel.FlatAppearance.BorderColor = Color.FromArgb(10, 10, 10);
             btnCancel.Click += (s, e) => Close();
             Controls.Add(btnCancel);
         }
@@ -225,7 +237,7 @@ namespace RobloxGlobalSplitSetup
                     BeginInvoke(new Action(() =>
                     {
                         progressBar.Value = 100;
-                        statusLabel.Text = "Installation complete!";
+                        statusLabel.Text = "INSTALLATION COMPLETE.";
                         if (launchNow && File.Exists(exePath))
                         {
                             Process.Start(new ProcessStartInfo
@@ -249,7 +261,7 @@ namespace RobloxGlobalSplitSetup
                     BeginInvoke(new Action(() =>
                     {
                         btnInstall.Enabled = true;
-                        statusLabel.Text = "Error: " + ex.Message;
+                        statusLabel.Text = "ERROR: " + ex.Message;
                         MessageBox.Show("Installation failed: " + ex.Message, "Setup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }));
                 }
@@ -288,7 +300,7 @@ namespace RobloxGlobalSplitSetup
                         if (onProgress != null && (index % 5 == 0 || index == total))
                         {
                             int pct = total > 0 ? (index * 100) / total : 100;
-                            onProgress(pct, "Extracting (" + index + "/" + total + "): " + entry.Name);
+                            onProgress(pct, "EXTRACTING (" + index + "/" + total + "): " + entry.Name);
                         }
                     }
                 }

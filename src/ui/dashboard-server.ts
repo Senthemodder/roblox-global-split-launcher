@@ -346,474 +346,554 @@ export class DashboardServer {
   <title>Roblox Global Split-Tunnel & Bootstrapper</title>
   <style>
     :root {
-      --bg-0: #060911;
-      --bg-1: #0d1322;
-      --panel: rgba(19, 27, 46, 0.82);
-      --panel-hover: rgba(26, 37, 62, 0.92);
-      --border: rgba(99, 132, 199, 0.22);
-      --border-glow: rgba(56, 189, 248, 0.45);
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --cyan: #38bdf8;
-      --indigo: #6366f1;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
+      --bg-canvas: #F5F5F3;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #FAFAFA;
+      --ink: #0A0A0A;
+      --ink-secondary: #525252;
+      --ink-muted: #737373;
+      --line: #D4D4D0;
+      --line-strong: #0A0A0A;
+      --ag-blue: #0052FF;
+      --ag-green: #007A33;
+      --ag-red: #C81E1E;
+      --ag-amber: #B45309;
+      --mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+      --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      background:
-        radial-gradient(circle at 12% 10%, rgba(56, 189, 248, 0.14), transparent 36%),
-        radial-gradient(circle at 88% 12%, rgba(99, 102, 241, 0.16), transparent 38%),
-        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
-      color: var(--text);
-      padding: 22px 28px;
+      font-family: var(--sans);
+      background-color: var(--bg-canvas);
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: var(--ink);
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
     }
+    .shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      border-left: 1px solid var(--line-strong);
+      border-right: 1px solid var(--line-strong);
+      background: var(--bg-surface);
+      min-height: 100vh;
+    }
+    /* Top Architectural Bar */
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: var(--panel);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 22px;
-      margin-bottom: 20px;
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+      align-items: stretch;
+      border-bottom: 2px solid var(--line-strong);
+      background: var(--bg-surface);
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
+      padding: 16px 24px;
+      border-right: 1px solid var(--line);
     }
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--cyan), var(--indigo));
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      background: var(--ink);
+      color: var(--bg-surface);
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 900;
-      font-size: 20px;
-      color: #fff;
-      box-shadow: 0 0 22px rgba(56, 189, 248, 0.45);
+      letter-spacing: -0.5px;
     }
     .brand-title h1 {
       margin: 0;
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      background: linear-gradient(90deg, #fff, #93c5fd);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: var(--ink);
     }
     .brand-title p {
-      margin: 2px 0 0 0;
-      font-size: 12px;
-      color: var(--muted);
+      margin: 3px 0 0 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink-secondary);
     }
-    .status-cluster {
+    .topbar-actions {
       display: flex;
       align-items: center;
       gap: 12px;
+      padding: 12px 24px;
     }
-    .pulse-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 12px var(--emerald);
-      display: inline-block;
-      margin-right: 6px;
-    }
-    .badge {
-      padding: 7px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      background: rgba(16, 185, 129, 0.14);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.38);
+    .status-tag {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-subtle);
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
       display: flex;
       align-items: center;
+      gap: 8px;
     }
-    .badge.warn {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.4);
+    .status-square {
+      width: 8px;
+      height: 8px;
+      background: var(--ag-green);
+      display: inline-block;
     }
-    .stats-strip {
+    .status-tag.warn .status-square {
+      background: var(--ag-amber);
+    }
+
+    /* 4-Column Metric Matrix */
+    .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 20px;
+      border-bottom: 1px solid var(--line-strong);
+      background: var(--bg-surface);
     }
-    .stat-tile {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 18px;
+    .metric-cell {
+      padding: 16px 24px;
+      border-right: 1px solid var(--line);
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .stat-tile .label {
-      font-size: 11px;
+    .metric-cell:last-child {
+      border-right: none;
+    }
+    .metric-cell .idx {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--ink-muted);
       text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: var(--muted);
-      font-weight: 600;
+      letter-spacing: 0.8px;
     }
-    .stat-tile .val {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text);
+    .metric-cell .val {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.5px;
     }
-    .stat-tile .sub {
+    .metric-cell .sub {
+      font-family: var(--mono);
       font-size: 11px;
-      color: var(--cyan);
+      color: var(--ag-blue);
     }
-    .grid {
+
+    /* Main 2x2 Architectural Grid */
+    .workspace-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 18px;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--line-strong);
     }
-    .card {
-      background: var(--panel);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-      transition: border-color 0.2s ease;
+    .panel {
+      padding: 22px 24px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--bg-surface);
     }
-    .card:hover {
-      border-color: var(--border-glow);
+    .panel:nth-child(2n) {
+      border-right: none;
     }
-    .card-header {
+    .panel-head {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: baseline;
+      padding-bottom: 12px;
       margin-bottom: 14px;
+      border-bottom: 1px solid var(--line-strong);
     }
-    .card h2 {
+    .panel-head h2 {
       margin: 0;
-      font-size: 14px;
+      font-family: var(--mono);
+      font-size: 12.5px;
       font-weight: 700;
-      color: var(--cyan);
+      color: var(--ink);
       text-transform: uppercase;
-      letter-spacing: 0.7px;
+      letter-spacing: 0.6px;
     }
+    .panel-head .meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    /* Schematic Lanes */
+    .schematic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line-strong);
+      margin-bottom: 14px;
+      background: var(--bg-subtle);
+    }
+    .schematic-col {
+      padding: 10px 12px;
+      border-right: 1px solid var(--line);
+      font-size: 11.5px;
+    }
+    .schematic-col:last-child {
+      border-right: none;
+    }
+    .schematic-col strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Rows & Controls */
     .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 9px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid var(--line);
       font-size: 13px;
     }
-    .row:last-child { border-bottom: none; }
-    .muted { color: var(--muted); }
+    .row:last-child {
+      border-bottom: none;
+    }
+    .muted {
+      color: var(--ink-secondary);
+    }
     code {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-family: "Cascadia Code", Consolas, monospace;
-      font-size: 12px;
-      color: #bae6fd;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--line);
+      padding: 2px 6px;
+      color: var(--ink);
+    }
+    label.field-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--ink-secondary);
+      display: block;
+      margin-bottom: 6px;
     }
     input[type="text"] {
       width: 100%;
-      padding: 10px 12px;
-      background: rgba(9, 13, 24, 0.9);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 10px;
+      padding: 9px 11px;
+      background: var(--bg-surface);
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12.5px;
       outline: none;
+      margin-bottom: 10px;
     }
     input[type="text"]:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+      border-color: var(--ag-blue);
+      background: var(--bg-subtle);
     }
     input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--cyan);
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ink);
       cursor: pointer;
     }
     button {
-      background: linear-gradient(135deg, var(--cyan), var(--indigo));
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 15px;
+      font-family: var(--mono);
+      font-size: 11.5px;
       font-weight: 700;
-      font-size: 12.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 9px 14px;
+      background: var(--ink);
+      color: var(--bg-surface);
+      border: 1px solid var(--ink);
       cursor: pointer;
-      transition: transform 0.12s ease, opacity 0.15s ease;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.28);
+      transition: background 0.1s ease, color 0.1s ease;
     }
     button:hover {
-      opacity: 0.94;
-      transform: translateY(-1px);
+      background: var(--bg-surface);
+      color: var(--ink);
     }
     button.secondary {
-      background: rgba(38, 50, 76, 0.9);
-      color: var(--text);
-      border: 1px solid var(--border);
-      box-shadow: none;
+      background: var(--bg-surface);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
     }
-    button.emerald {
-      background: linear-gradient(135deg, #10b981, #059669);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    button.secondary:hover {
+      background: var(--ink);
+      color: var(--bg-surface);
+    }
+    button.primary-blue {
+      background: var(--ag-blue);
+      border-color: var(--ag-blue);
+      color: #FFFFFF;
+    }
+    button.primary-blue:hover {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #FFFFFF;
     }
     button.danger {
-      background: rgba(244, 63, 94, 0.15);
-      color: #fda4af;
-      border: 1px solid rgba(244, 63, 94, 0.35);
-      box-shadow: none;
+      background: var(--bg-surface);
+      color: var(--ag-red);
+      border: 1px solid var(--ag-red);
+    }
+    button.danger:hover {
+      background: var(--ag-red);
+      color: #FFFFFF;
     }
     .btn-group {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 10px;
+      margin-top: 12px;
     }
-    .lane-box {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 12px 0;
-    }
-    .lane {
-      background: rgba(9, 13, 24, 0.75);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 11.5px;
-    }
-    .lane strong { display: block; margin-bottom: 3px; }
+
+    /* Telemetry Log Table */
     .log-box {
-      max-height: 250px;
+      height: 255px;
       overflow-y: auto;
-      font-family: "Cascadia Code", Consolas, monospace;
+      font-family: var(--mono);
       font-size: 11.5px;
-      background: rgba(6, 9, 17, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--line-strong);
+      padding: 8px 10px;
     }
     .log-line {
-      padding: 5px 4px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 12px;
     }
-    .tag-tunnel { color: var(--cyan); font-weight: 700; }
-    .tag-direct { color: var(--emerald); font-weight: 700; }
-    .tag-block { color: var(--rose); font-weight: 700; }
+    .tag-tunnel { color: var(--ag-blue); font-weight: 700; }
+    .tag-direct { color: var(--ag-green); font-weight: 700; }
+    .tag-block { color: var(--ag-red); font-weight: 700; }
+
+    /* Catalog Section */
+    .catalog-section {
+      padding: 22px 24px;
+      background: var(--bg-surface);
+    }
     .catalog-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
-      gap: 14px;
-      margin-top: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      border-top: 1px solid var(--line-strong);
+      border-left: 1px solid var(--line-strong);
+      margin-top: 16px;
     }
     .catalog-item {
-      background: rgba(9, 13, 24, 0.85);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+      padding: 14px;
       font-size: 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      gap: 8px;
     }
     .catalog-item:hover {
-      transform: translateY(-3px);
-      border-color: var(--cyan);
+      background: var(--bg-subtle);
     }
     .catalog-thumb {
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--bg-canvas);
+      border: 1px solid var(--line);
       object-fit: contain;
     }
     .catalog-item a {
-      color: var(--text);
+      color: var(--ink);
       text-decoration: none;
       font-weight: 700;
       font-size: 13px;
       line-height: 1.3;
     }
-    .catalog-item a:hover { color: var(--cyan); }
-    .price-pill {
+    .catalog-item a:hover {
+      color: var(--ag-blue);
+      text-decoration: underline;
+    }
+    .price-tag {
+      font-family: var(--mono);
       display: inline-block;
       align-self: flex-start;
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 3px 7px;
       font-weight: 700;
       font-size: 11px;
-      background: rgba(16, 185, 129, 0.16);
-      color: #34d399;
+      border: 1px solid var(--ink);
+      background: var(--bg-canvas);
+      color: var(--ink);
+    }
+    .report-panel {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-subtle);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.55;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-logo">R</div>
-      <div class="brand-title">
-        <h1>ROBLOX GLOBAL SPLIT-TUNNEL & BOOTSTRAPPER</h1>
-        <p>Zero-Lag Direct ISP Gameplay + Automatic Non-VN Global Catalog & Account Protection</p>
-      </div>
-    </div>
-    <div class="status-cluster">
-      <div id="statusBadge" class="badge"><span class="pulse-dot"></span>Wired by Default</div>
-      <button class="emerald" onclick="launchGlobal()">Launch Global Roblox</button>
-    </div>
-  </div>
-
-  <div class="stats-strip">
-    <div class="stat-tile">
-      <span class="label">Split-Proxy & PAC</span>
-      <span class="val" id="proxyEndpoint">127.0.0.1:7899</span>
-      <span class="sub" id="pacStateSub">Windows System PAC Wired</span>
-    </div>
-    <div class="stat-tile">
-      <span class="label">*.roblox.com API Exit</span>
-      <span class="val" id="statTunnelCount">0 reqs</span>
-      <span class="sub" id="activeUpstreamLabel">Cloudflare WARP Global</span>
-    </div>
-    <div class="stat-tile">
-      <span class="label">Direct ISP Gameplay / CDN</span>
-      <span class="val" id="statDirectCount">0 reqs</span>
-      <span class="sub">128.116.0.0/17 UDP Raw Ping</span>
-    </div>
-    <div class="stat-tile">
-      <span class="label">VNG Redirect Shield</span>
-      <span class="val" id="statBlockCount">0 blocked</span>
-      <span class="sub">vnggames.com & zing.vn sinkholed</span>
-    </div>
-  </div>
-
-  <div class="grid">
-    <!-- 1. Split-Tunnel Routing Engine -->
-    <div class="card">
-      <div class="card-header">
-        <h2>1. Default-Wired Split-Tunnel Architecture</h2>
-        <code id="pacUrl">http://127.0.0.1:7899/proxy.pac</code>
-      </div>
-      <div class="lane-box">
-        <div class="lane">
-          <strong style="color:var(--cyan);">GLOBAL TUNNEL</strong>
-          <span class="muted">*.roblox.com, auth, catalog, gamejoin</span>
-        </div>
-        <div class="lane">
-          <strong style="color:var(--emerald);">DIRECT RAW ISP</strong>
-          <span class="muted">UDP 49152-65535 & *.rbxcdn.com</span>
-        </div>
-        <div class="lane">
-          <strong style="color:var(--rose);">VNG SINKHOLE</strong>
-          <span class="muted">Blocks vnggames.com auto-migration</span>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">AG</div>
+        <div class="brand-title">
+          <h1>ROBLOX GLOBAL SPLIT-TUNNEL // CONTROL MATRIX</h1>
+          <p>ANTIGRAVITY ROUTING ENGINE — *.ROBLOX.COM TUNNELED / UDP GAMEPLAY DIRECT ISP</p>
         </div>
       </div>
-      <div class="row">
-        <span>Route <code>*.rbxcdn.com</code> Direct (Full Local ISP Download Speed)</span>
-        <input type="checkbox" id="chkCdnDirect" onchange="saveToggles()" />
+      <div class="topbar-actions">
+        <div id="statusBadge" class="status-tag"><span class="status-square"></span>WIRED BY DEFAULT</div>
+        <button class="primary-blue" onclick="launchGlobal()">LAUNCH GLOBAL ROBLOX</button>
       </div>
-      <div class="row">
-        <span>Block VNG Redirect & Telemetry Hosts (<code>vnggames.com</code>)</span>
-        <input type="checkbox" id="chkBlockVng" onchange="saveToggles()" />
-      </div>
-      <div class="row">
-        <span>Wire Windows System PAC (<code>AutoConfigURL</code>) by Default</span>
-        <input type="checkbox" id="chkWinPac" onchange="saveToggles()" />
-      </div>
-      <div class="btn-group">
-        <button onclick="runRegionCheck()">Verify Live Exit IP & VNG Protection</button>
-        <button class="secondary" onclick="exportSingBox()">Export Sing-Box JSON</button>
-      </div>
-      <div id="regionReportBox" style="margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--muted);"></div>
     </div>
 
-    <!-- 2. Non-VN Upstream Profiles -->
-    <div class="card">
-      <div class="card-header">
-        <h2>2. Upstream Global Tunnel Profiles</h2>
-        <button class="secondary" onclick="provisionWarp()" id="btnProvisionWarp">Auto-Wire Free Cloudflare WARP</button>
+    <div class="metrics-grid">
+      <div class="metric-cell">
+        <span class="idx">SYS.01 // LOCAL SPLIT PROXY</span>
+        <span class="val" id="proxyEndpoint">127.0.0.1:7899</span>
+        <span class="sub" id="pacStateSub">WINDOWS PAC AUTO-WIRED</span>
       </div>
-      <label class="muted" style="font-size:11.5px;display:block;margin-bottom:6px;">
-        Add custom SOCKS5 / HTTP / WireGuard / VLESS / Shadowsocks URI (or use built-in auto-wired WARP):
-      </label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="tunnelUriInput" title="Enter tunnel URI" style="margin-bottom:0;" />
-        <button onclick="addUpstreamUri()" style="white-space:nowrap;">Add Tunnel</button>
+      <div class="metric-cell">
+        <span class="idx">SYS.02 // *.ROBLOX.COM API ROUTE</span>
+        <span class="val" id="statTunnelCount">0 PKTS</span>
+        <span class="sub" id="activeUpstreamLabel">CLOUDFLARE WARP GLOBAL</span>
       </div>
-      <div id="upstreamList" style="margin-top:12px;"></div>
+      <div class="metric-cell">
+        <span class="idx">SYS.03 // DIRECT ISP GAMEPLAY</span>
+        <span class="val" id="statDirectCount">0 PKTS</span>
+        <span class="sub">128.116.0.0/17 UDP RAW PING</span>
+      </div>
+      <div class="metric-cell">
+        <span class="idx">SYS.04 // VNG SINKHOLE GUARD</span>
+        <span class="val" id="statBlockCount">0 BLOCKED</span>
+        <span class="sub">VNGGAMES.COM & ZING.VN</span>
+      </div>
     </div>
 
-    <!-- 3. Global Roblox Client Bootstrapper -->
-    <div class="card">
-      <div class="card-header">
-        <h2>3. Official Global Roblox Bootstrapper</h2>
-        <span class="muted" style="font-size:11px;">Direct from setup.rbxcdn.com</span>
-      </div>
-      <div class="row">
-        <span class="muted">Latest Global WindowsPlayer</span>
-        <code id="liveGlobalVer">Checking...</code>
-      </div>
-      <div class="row">
-        <span class="muted">Local Global Client Installed</span>
-        <code id="localGlobalVer">Checking...</code>
-      </div>
-      <div class="row">
-        <span class="muted">VNG Client Conflict Scan</span>
-        <span id="vngConflictStatus">Checking...</span>
-      </div>
-      <div style="margin-top:12px;">
-        <label class="muted" style="font-size:11.5px;display:block;margin-bottom:6px;">Optional Place ID (leave blank to open Global Roblox Desktop App)</label>
-        <input type="text" id="placeIdInput" title="Optional Place ID" />
+    <div class="workspace-grid">
+      <!-- 01 // SPLIT-TUNNEL ARCHITECTURE -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>01 // SPLIT-TUNNEL ROUTING MATRIX</h2>
+          <code id="pacUrl">http://127.0.0.1:7899/proxy.pac</code>
+        </div>
+        <div class="schematic-grid">
+          <div class="schematic-col">
+            <strong style="color:var(--ag-blue);">■ LANE A: GLOBAL TUNNEL</strong>
+            <span class="muted">*.roblox.com, auth, catalog, gamejoin</span>
+          </div>
+          <div class="schematic-col">
+            <strong style="color:var(--ag-green);">■ LANE B: DIRECT ISP</strong>
+            <span class="muted">UDP 49152-65535 & *.rbxcdn.com</span>
+          </div>
+          <div class="schematic-col">
+            <strong style="color:var(--ag-red);">■ LANE C: VNG SINKHOLE</strong>
+            <span class="muted">Blocks vnggames.com migration</span>
+          </div>
+        </div>
+        <div class="row">
+          <span>Route <code>*.rbxcdn.com</code> Direct (Unthrottled Local ISP Asset CDN)</span>
+          <input type="checkbox" id="chkCdnDirect" onchange="saveToggles()" />
+        </div>
+        <div class="row">
+          <span>Block VNG Redirect & Telemetry Endpoints (<code>vnggames.com</code>)</span>
+          <input type="checkbox" id="chkBlockVng" onchange="saveToggles()" />
+        </div>
+        <div class="row">
+          <span>Bind Windows System PAC (<code>AutoConfigURL</code>) Automatically</span>
+          <input type="checkbox" id="chkWinPac" onchange="saveToggles()" />
+        </div>
         <div class="btn-group">
-          <button class="emerald" onclick="launchGlobal()">Launch Global Client</button>
-          <button onclick="downloadGlobalInstaller()">Download Official Global Installer (.exe)</button>
-          <button class="secondary" onclick="bindGlobalProtocol()">Bind roblox-player: Protocol</button>
+          <button onclick="runRegionCheck()">VERIFY EXIT IP & VNG RISK</button>
+          <button class="secondary" onclick="exportSingBox()">EXPORT SING-BOX JSON</button>
         </div>
+        <div id="regionReportBox" class="report-panel">Probing network topology...</div>
       </div>
-      <div id="bootstrapStatus" style="margin-top:10px;font-size:12px;color:var(--cyan);"></div>
+
+      <!-- 02 // UPSTREAM TUNNEL NODES -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>02 // UPSTREAM NON-VN NODES</h2>
+          <button class="secondary" onclick="provisionWarp()" id="btnProvisionWarp">AUTO-WIRE CLOUDFLARE WARP</button>
+        </div>
+        <label class="field-label">ADD TUNNEL URI (SOCKS5 / HTTP / WIREGUARD / VLESS / SHADOWSOCKS)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="tunnelUriInput" title="Enter tunnel URI" style="margin-bottom:0;" />
+          <button onclick="addUpstreamUri()" style="white-space:nowrap;">ADD NODE</button>
+        </div>
+        <div id="upstreamList" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- 03 // GLOBAL ROBLOX BOOTSTRAPPER -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>03 // GLOBAL ROBLOX CLIENT BOOTSTRAPPER</h2>
+          <span class="meta">SOURCE: SETUP.RBXCDN.COM</span>
+        </div>
+        <div class="row">
+          <span class="muted">Live Global WindowsPlayer Build</span>
+          <code id="liveGlobalVer">Checking...</code>
+        </div>
+        <div class="row">
+          <span class="muted">Local Global Binary Status</span>
+          <code id="localGlobalVer">Checking...</code>
+        </div>
+        <div class="row">
+          <span class="muted">VNG Package Conflict Scan</span>
+          <code id="vngConflictStatus">Checking...</code>
+        </div>
+        <div style="margin-top:14px;">
+          <label class="field-label">OPTIONAL PLACE ID (BLANK = LAUNCH GLOBAL DESKTOP APP)</label>
+          <input type="text" id="placeIdInput" title="Optional Place ID" />
+          <div class="btn-group">
+            <button class="primary-blue" onclick="launchGlobal()">LAUNCH GLOBAL CLIENT</button>
+            <button onclick="downloadGlobalInstaller()">FETCH OFFICIAL GLOBAL INSTALLER (.EXE)</button>
+            <button class="secondary" onclick="bindGlobalProtocol()">LOCK ROBLOX-PLAYER: URI</button>
+          </div>
+        </div>
+        <div id="bootstrapStatus" style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--ag-blue);"></div>
+      </div>
+
+      <!-- 04 // REAL-TIME PACKET TELEMETRY -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>04 // PACKET ROUTING TELEMETRY</h2>
+          <span class="meta">LIVE STREAM</span>
+        </div>
+        <div class="log-box" id="telemetryLogs">Initializing packet telemetry stream...</div>
+      </div>
     </div>
 
-    <!-- 4. Live Split-Tunnel Route Telemetry -->
-    <div class="card">
-      <div class="card-header">
-        <h2>4. Real-Time Split-Tunnel Packet Decisions</h2>
-        <span class="muted" style="font-size:11px;">Live Stream</span>
+    <!-- 05 // GLOBAL CATALOG EXPLORER -->
+    <div class="catalog-section">
+      <div class="panel-head">
+        <h2>05 // GLOBAL CATALOG INDEX (ROUTED VIA SPLIT-TUNNEL)</h2>
+        <span class="meta">ENDPOINT: CATALOG.ROBLOX.COM</span>
       </div>
-      <div class="log-box" id="telemetryLogs">Loading traffic events...</div>
+      <label class="field-label">SEARCH GLOBAL CATALOG KEYWORD (VALKYRIE, FEDORA, DOMINUS, KORBLOX)</label>
+      <div style="display:flex;gap:8px;max-width:640px;">
+        <input type="text" id="catalogKeyword" value="Valkyrie" title="Catalog keyword" style="margin-bottom:0;" />
+        <button onclick="searchCatalog()" style="white-space:nowrap;">QUERY CATALOG</button>
+      </div>
+      <div class="catalog-grid" id="catalogResults"></div>
     </div>
-  </div>
-
-  <!-- 5. Global Catalog Explorer -->
-  <div class="card" style="margin-top:18px;">
-    <div class="card-header">
-      <h2>5. Live Global Catalog Explorer (Routed via Split-Tunnel)</h2>
-      <span class="muted" style="font-size:12px;">Queries catalog.roblox.com & thumbnails.roblox.com</span>
-    </div>
-    <label class="muted" style="font-size:11.5px;display:block;margin-bottom:6px;">Search Global Catalog Keyword (e.g. Valkyrie, Fedora, Korblox, Dominus, Hair)</label>
-    <div style="display:flex;gap:10px;">
-      <input type="text" id="catalogKeyword" value="Valkyrie" title="Catalog keyword" style="margin-bottom:0;" />
-      <button onclick="searchCatalog()" style="white-space:nowrap;">Search Global Catalog</button>
-    </div>
-    <div class="catalog-grid" id="catalogResults"></div>
   </div>
 
   <script>
@@ -826,29 +906,29 @@ export class DashboardServer {
       document.getElementById('chkBlockVng').checked = data.settings.blockVngRedirects;
       document.getElementById('chkWinPac').checked = Boolean(data.windowsAutoConfigUrl);
       document.getElementById('pacStateSub').textContent = data.windowsAutoConfigUrl
-        ? 'Windows System PAC Wired Automatically'
-        : 'Manual / Local Proxy Mode';
+        ? 'WINDOWS PAC AUTO-WIRED'
+        : 'LOCAL PROXY MODE';
 
       const active = data.activeUpstream;
       const badge = document.getElementById('statusBadge');
       if (active) {
-        const sbSuffix = data.singBoxRunning ? ' (Sing-Box Core Active)' : '';
-        document.getElementById('activeUpstreamLabel').textContent = active.name + ' [' + active.protocol.toUpperCase() + ']' + sbSuffix;
-        badge.innerHTML = '<span class="pulse-dot"></span>Wired: *.roblox.com -> ' + active.name;
-        badge.className = 'badge';
+        const sbSuffix = data.singBoxRunning ? ' // SING-BOX ACTIVE' : '';
+        document.getElementById('activeUpstreamLabel').textContent = active.name.toUpperCase() + ' [' + active.protocol.toUpperCase() + ']' + sbSuffix;
+        badge.innerHTML = '<span class="status-square"></span>WIRED: ' + active.name.toUpperCase();
+        badge.className = 'status-tag';
       } else {
-        document.getElementById('activeUpstreamLabel').textContent = 'No Upstream Active';
-        badge.textContent = 'Direct Mode (Click Auto-Wire WARP)';
-        badge.className = 'badge warn';
+        document.getElementById('activeUpstreamLabel').textContent = 'NO UPSTREAM CONFIGURED';
+        badge.innerHTML = '<span class="status-square"></span>DIRECT FALLBACK';
+        badge.className = 'status-tag warn';
       }
 
       const events = data.recentEvents || [];
       const tunnelCount = events.filter(e => e.decision === 'GLOBAL_TUNNEL').length;
       const directCount = events.filter(e => e.decision === 'DIRECT_ISP').length;
       const blockCount = events.filter(e => e.decision === 'BLOCK_VNG_TELEMETRY').length;
-      document.getElementById('statTunnelCount').textContent = tunnelCount + ' tunneled';
-      document.getElementById('statDirectCount').textContent = directCount + ' direct';
-      document.getElementById('statBlockCount').textContent = blockCount + ' blocked';
+      document.getElementById('statTunnelCount').textContent = tunnelCount + ' TUNNELED';
+      document.getElementById('statDirectCount').textContent = directCount + ' DIRECT';
+      document.getElementById('statBlockCount').textContent = blockCount + ' BLOCKED';
 
       const ul = document.getElementById('upstreamList');
       ul.innerHTML = '';
@@ -857,10 +937,10 @@ export class DashboardServer {
         div.className = 'row';
         const isCurrent = data.settings.activeUpstreamId === u.id;
         div.innerHTML =
-          '<span><strong>' + u.name + '</strong> <span class="muted">(' + u.protocol + '://' + u.server + ':' + u.serverPort + ')</span></span>' +
+          '<span><strong style="font-family:var(--mono);font-size:12px;">' + u.name + '</strong> <code>' + u.protocol + '://' + u.server + ':' + u.serverPort + '</code></span>' +
           '<div class="btn-group" style="margin-top:0;">' +
-          (isCurrent ? '<span class="badge">Active Default</span>' : '<button class="secondary" onclick="selectUpstream(\\'' + u.id + '\\')">Activate</button>') +
-          '<button class="danger" onclick="deleteUpstream(\\'' + u.id + '\\')">Remove</button>' +
+          (isCurrent ? '<span class="status-tag"><span class="status-square"></span>ACTIVE</span>' : '<button class="secondary" onclick="selectUpstream(\\'' + u.id + '\\')">ACTIVATE</button>') +
+          '<button class="danger" onclick="deleteUpstream(\\'' + u.id + '\\')">DELETE</button>' +
           '</div>';
         ul.appendChild(div);
       }
@@ -868,14 +948,14 @@ export class DashboardServer {
       const inst = data.installations;
       document.getElementById('localGlobalVer').textContent = inst.globalInstalled
         ? inst.installedVersionUpload
-        : 'Not Installed Yet (Click Download Official Global Installer)';
+        : 'NOT INSTALLED (CLICK FETCH OFFICIAL GLOBAL INSTALLER)';
       document.getElementById('vngConflictStatus').textContent = inst.vngDetected
-        ? 'WARNING: Found VNG folder (' + inst.vngPaths.join(', ') + ')'
-        : 'Clean (Zero VNG Client Traces)';
+        ? 'CONFLICT: ' + inst.vngPaths.join(', ')
+        : 'CLEAN (0 VNG TRACES)';
 
       const logBox = document.getElementById('telemetryLogs');
       if (events.length === 0) {
-        logBox.innerHTML = '<div class="muted">Ready. Routing telemetry will stream here automatically.</div>';
+        logBox.innerHTML = '<div class="muted">Awaiting packet traffic...</div>';
       } else {
         logBox.innerHTML = events.map(e => {
           const cls = e.decision === 'GLOBAL_TUNNEL' ? 'tag-tunnel' : (e.decision === 'BLOCK_VNG_TELEMETRY' ? 'tag-block' : 'tag-direct');
@@ -894,7 +974,7 @@ export class DashboardServer {
             data.liveVersion.version + ' (' + data.liveVersion.clientVersionUpload + ')';
         }
       } catch (e) {
-        document.getElementById('liveGlobalVer').textContent = 'Offline / Error';
+        document.getElementById('liveGlobalVer').textContent = 'OFFLINE';
       }
     }
 
@@ -913,10 +993,10 @@ export class DashboardServer {
 
     async function provisionWarp() {
       const btn = document.getElementById('btnProvisionWarp');
-      btn.textContent = 'Provisioning WARP + Sing-Box...';
+      btn.textContent = 'PROVISIONING WARP...';
       const res = await fetch('/api/upstreams/provision-warp', { method: 'POST' });
       const data = await res.json();
-      btn.textContent = 'Auto-Wire Free Cloudflare WARP';
+      btn.textContent = 'AUTO-WIRE CLOUDFLARE WARP';
       if (data.error) {
         alert(data.error);
       } else {
@@ -958,13 +1038,13 @@ export class DashboardServer {
 
     async function runRegionCheck() {
       const box = document.getElementById('regionReportBox');
-      box.textContent = 'Probing Direct ISP IP vs Split-Tunnel *.roblox.com Exit...';
+      box.textContent = 'PROBING DIRECT ISP VS SPLIT-TUNNEL EXIT...';
       const res = await fetch('/api/region-check');
       const r = await res.json();
       box.innerHTML =
-        '<div><strong>Direct Gameplay ISP:</strong> <code>' + r.directIp + '</code> (' + r.directCountryCode + ' - ' + r.directIsp + ')</div>' +
-        '<div style="margin-top:4px;"><strong>*.roblox.com Tunnel Exit:</strong> <code>' + (r.proxiedIp || 'Direct') + '</code> (' + r.proxiedCountryCode + ')</div>' +
-        '<div style="margin-top:6px;font-weight:600;color:' + (r.vngRiskLevel === 'VNG_LOCK_RISK' ? 'var(--rose)' : 'var(--emerald)') + ';">' + r.summary + '</div>';
+        '<div><strong>DIRECT GAMEPLAY ISP :</strong> ' + r.directIp + ' (' + r.directCountryCode + ' // ' + r.directIsp + ')</div>' +
+        '<div><strong>*.ROBLOX.COM EXIT   :</strong> ' + (r.proxiedIp || 'Direct') + ' (' + r.proxiedCountryCode + ')</div>' +
+        '<div style="margin-top:6px;font-weight:700;color:' + (r.vngRiskLevel === 'VNG_LOCK_RISK' ? 'var(--ag-red)' : 'var(--ag-green)') + ';">' + r.summary + '</div>';
       await refreshState();
     }
 
@@ -986,24 +1066,24 @@ export class DashboardServer {
     async function launchGlobal() {
       const status = document.getElementById('bootstrapStatus');
       const placeId = document.getElementById('placeIdInput').value.trim();
-      status.textContent = 'Launching Global RobloxPlayerBeta.exe...';
+      status.textContent = 'EXECUTING GLOBAL ROBLOXPLAYERBETA.EXE...';
       const res = await fetch('/api/roblox/launch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ placeId })
       });
       const data = await res.json();
-      status.textContent = data.error ? ('Notice: ' + data.error) : ('Launched Global Roblox (PID ' + data.pid + ')');
+      status.textContent = data.error ? ('STATUS: ' + data.error) : ('LAUNCHED PID ' + data.pid);
     }
 
     async function downloadGlobalInstaller() {
       const status = document.getElementById('bootstrapStatus');
-      status.textContent = 'Downloading official Global Roblox bootstrapper directly from setup.rbxcdn.com...';
+      status.textContent = 'DOWNLOADING GLOBAL INSTALLER FROM SETUP.RBXCDN.COM...';
       const res = await fetch('/api/roblox/download-installer', { method: 'POST' });
       const data = await res.json();
       status.textContent = data.error
-        ? ('Error: ' + data.error)
-        : ('Downloaded Official Global Installer: ' + data.installerPath);
+        ? ('ERROR: ' + data.error)
+        : ('SAVED: ' + data.installerPath);
     }
 
     async function bindGlobalProtocol() {
@@ -1011,27 +1091,27 @@ export class DashboardServer {
       const res = await fetch('/api/roblox/register-protocol', { method: 'POST' });
       const data = await res.json();
       status.textContent = data.error
-        ? ('Notice: ' + data.error)
-        : ('Bound roblox-player: URI protocol to ' + data.executablePath);
+        ? ('STATUS: ' + data.error)
+        : ('LOCKED ROBLOX-PLAYER: -> ' + data.executablePath);
     }
 
     async function searchCatalog() {
       const kw = document.getElementById('catalogKeyword').value.trim();
       const grid = document.getElementById('catalogResults');
-      grid.innerHTML = '<div class="muted">Querying catalog.roblox.com & thumbnails.roblox.com via Split-Tunnel...</div>';
+      grid.innerHTML = '<div style="padding:14px;font-family:var(--mono);font-size:12px;">QUERYING CATALOG.ROBLOX.COM...</div>';
       const res = await fetch('/api/catalog/search?keyword=' + encodeURIComponent(kw));
       const data = await res.json();
       if (data.error) {
-        grid.innerHTML = '<div style="color:var(--rose);">' + data.error + '</div>';
+        grid.innerHTML = '<div style="padding:14px;color:var(--ag-red);">' + data.error + '</div>';
         return;
       }
       grid.innerHTML = (data.items || []).map(item =>
         '<div class="catalog-item">' +
           (item.thumbnailUrl ? '<img class="catalog-thumb" src="' + item.thumbnailUrl + '" alt="' + item.name + '" />' : '') +
           '<a href="https://www.roblox.com/catalog/' + item.id + '" target="_blank">' + item.name + '</a>' +
-          '<div class="muted">ID: ' + item.id + ' • ' + item.creatorName + '</div>' +
-          '<span class="price-pill">' +
-            (item.price !== undefined ? (item.price + ' Robux') : (item.priceStatus || 'Offsale')) +
+          '<div class="muted" style="font-family:var(--mono);font-size:11px;">ID ' + item.id + ' // ' + item.creatorName + '</div>' +
+          '<span class="price-tag">' +
+            (item.price !== undefined ? (item.price + ' ROBUX') : (item.priceStatus || 'OFFSALE').toUpperCase()) +
           '</span>' +
         '</div>'
       ).join('');
@@ -1062,7 +1142,7 @@ export function openDesktopAppWindow(url: string): void {
   ];
   for (const exe of edgeCandidates) {
     if (fs.existsSync(exe)) {
-      const child = spawn(exe, [`--app=${url}`, "--window-size=1220,820"], {
+      const child = spawn(exe, [`--app=${url}`, "--window-size=1280,840"], {
         detached: true,
         stdio: "ignore"
       });

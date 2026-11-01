@@ -26,11 +26,11 @@ namespace RobloxGlobalSplit
         public LauncherForm()
         {
             appBaseDir = AppDomain.CurrentDomain.BaseDirectory;
-            Text = "Roblox Global Split-Tunnel & Bootstrapper";
-            Size = new Size(640, 440);
+            Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL & BOOTSTRAPPER";
+            Size = new Size(660, 450);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.FromArgb(11, 15, 25);
-            ForeColor = Color.FromArgb(241, 245, 249);
+            BackColor = Color.FromArgb(255, 255, 255);
+            ForeColor = Color.FromArgb(10, 10, 10);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Icon = SystemIcons.Shield;
@@ -38,40 +38,48 @@ namespace RobloxGlobalSplit
             Panel headerPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 68,
-                BackColor = Color.FromArgb(19, 27, 46),
+                Height = 72,
+                BackColor = Color.FromArgb(245, 245, 243),
                 Padding = new Padding(18, 12, 18, 12)
             };
 
+            Panel headerBottomLine = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 2,
+                BackColor = Color.FromArgb(10, 10, 10)
+            };
+            headerPanel.Controls.Add(headerBottomLine);
+
             Label titleLabel = new Label
             {
-                Text = "ROBLOX GLOBAL SPLIT-TUNNEL ENGINE",
-                Font = new Font("Segoe UI", 13F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(56, 189, 248),
+                Text = "AG // ROBLOX GLOBAL SPLIT-TUNNEL ENGINE",
+                Font = new Font("Consolas", 12F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(10, 10, 10),
                 AutoSize = true,
-                Location = new Point(18, 12)
+                Location = new Point(18, 14)
             };
 
             statusLabel = new Label
             {
-                Text = "Initializing default-wired Cloudflare WARP & Split-Tunnel Proxy...",
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
-                ForeColor = Color.FromArgb(52, 211, 153),
+                Text = "STATUS: INITIALIZING DEFAULT-WIRED CLOUDFLARE WARP & SPLIT-PROXY...",
+                Font = new Font("Consolas", 8.8F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(0, 82, 255),
                 AutoSize = true,
-                Location = new Point(18, 38)
+                Location = new Point(18, 40)
             };
 
             headerPanel.Controls.Add(titleLabel);
             headerPanel.Controls.Add(statusLabel);
             Controls.Add(headerPanel);
 
-            btnOpenUi = CreateStyledButton("Open Control Center UI", new Point(18, 84), new Size(185, 38), Color.FromArgb(56, 189, 248), Color.FromArgb(9, 13, 22));
+            btnOpenUi = CreateSquareButton("OPEN CONTROL MATRIX", new Point(18, 88), new Size(192, 36), Color.FromArgb(10, 10, 10), Color.White, Color.FromArgb(10, 10, 10));
             btnOpenUi.Click += (s, e) => OpenControlCenterWindow();
 
-            btnLaunchRoblox = CreateStyledButton("Launch Global Roblox", new Point(213, 84), new Size(185, 38), Color.FromArgb(16, 185, 129), Color.White);
+            btnLaunchRoblox = CreateSquareButton("LAUNCH GLOBAL ROBLOX", new Point(218, 88), new Size(192, 36), Color.FromArgb(0, 82, 255), Color.White, Color.FromArgb(0, 82, 255));
             btnLaunchRoblox.Click += (s, e) => TriggerApiPost("/api/roblox/launch", "{}");
 
-            btnRewireWarp = CreateStyledButton("Re-Wire WARP Tunnel", new Point(408, 84), new Size(195, 38), Color.FromArgb(38, 50, 76), Color.White);
+            btnRewireWarp = CreateSquareButton("RE-WIRE WARP TUNNEL", new Point(418, 88), new Size(204, 36), Color.White, Color.FromArgb(10, 10, 10), Color.FromArgb(10, 10, 10));
             btnRewireWarp.Click += (s, e) => TriggerApiPost("/api/upstreams/provision-warp", "{}");
 
             Controls.Add(btnOpenUi);
@@ -83,27 +91,27 @@ namespace RobloxGlobalSplit
                 Multiline = true,
                 ReadOnly = true,
                 ScrollBars = ScrollBars.Vertical,
-                Location = new Point(18, 136),
-                Size = new Size(585, 205),
-                BackColor = Color.FromArgb(6, 9, 17),
-                ForeColor = Color.FromArgb(186, 230, 253),
+                Location = new Point(18, 138),
+                Size = new Size(604, 210),
+                BackColor = Color.FromArgb(250, 250, 250),
+                ForeColor = Color.FromArgb(10, 10, 10),
                 BorderStyle = BorderStyle.FixedSingle,
-                Font = new Font("Consolas", 9.5F, FontStyle.Regular)
+                Font = new Font("Consolas", 9F, FontStyle.Regular)
             };
             Controls.Add(logBox);
 
-            Button btnMinimizeTray = CreateStyledButton("Minimize to System Tray", new Point(18, 352), new Size(200, 34), Color.FromArgb(30, 41, 59), Color.FromArgb(203, 213, 225));
+            Button btnMinimizeTray = CreateSquareButton("MINIMIZE TO TRAY", new Point(18, 360), new Size(192, 34), Color.White, Color.FromArgb(10, 10, 10), Color.FromArgb(10, 10, 10));
             btnMinimizeTray.Click += (s, e) => HideToTray();
 
-            btnExit = CreateStyledButton("Stop Split-Tunnel & Exit", new Point(403, 352), new Size(200, 34), Color.FromArgb(159, 18, 57), Color.White);
+            btnExit = CreateSquareButton("STOP ENGINE & EXIT", new Point(430, 360), new Size(192, 34), Color.White, Color.FromArgb(200, 30, 30), Color.FromArgb(200, 30, 30));
             btnExit.Click += (s, e) => SafeExit();
 
             Controls.Add(btnMinimizeTray);
             Controls.Add(btnExit);
 
             ContextMenu trayMenu = new ContextMenu();
-            trayMenu.MenuItems.Add("Open Control Center UI", (s, e) => { ShowFromTray(); OpenControlCenterWindow(); });
-            trayMenu.MenuItems.Add("Show Engine Console", (s, e) => ShowFromTray());
+            trayMenu.MenuItems.Add("Open Control Matrix UI", (s, e) => { ShowFromTray(); OpenControlCenterWindow(); });
+            trayMenu.MenuItems.Add("Show Engine Window", (s, e) => ShowFromTray());
             trayMenu.MenuItems.Add("Launch Global Roblox", (s, e) => TriggerApiPost("/api/roblox/launch", "{}"));
             trayMenu.MenuItems.Add("-");
             trayMenu.MenuItems.Add("Stop Split-Tunnel & Exit", (s, e) => SafeExit());
@@ -121,7 +129,7 @@ namespace RobloxGlobalSplit
             FormClosing += OnFormClosing;
         }
 
-        private Button CreateStyledButton(string text, Point location, Size size, Color backColor, Color foreColor)
+        private Button CreateSquareButton(string text, Point location, Size size, Color backColor, Color foreColor, Color borderColor)
         {
             Button btn = new Button
             {
@@ -131,10 +139,11 @@ namespace RobloxGlobalSplit
                 BackColor = backColor,
                 ForeColor = foreColor,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Font = new Font("Consolas", 9F, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.BorderSize = 1;
+            btn.FlatAppearance.BorderColor = borderColor;
             return btn;
         }
 
@@ -156,8 +165,8 @@ namespace RobloxGlobalSplit
                 string cliScript = Path.Combine(appBaseDir, "dist", "cli.js");
                 if (!File.Exists(cliScript))
                 {
-                    AppendLog("ERROR: Could not find dist\\cli.js in " + appBaseDir);
-                    statusLabel.Text = "Missing dist\\cli.js";
+                    AppendLog("ERROR: Missing dist\\cli.js in " + appBaseDir);
+                    statusLabel.Text = "STATUS: MISSING DIST\\CLI.JS";
                     return;
                 }
 
@@ -182,7 +191,7 @@ namespace RobloxGlobalSplit
                         {
                             BeginInvoke(new Action(() =>
                             {
-                                statusLabel.Text = "Wired & Protected: *.roblox.com Tunneled | UDP Gameplay Direct ISP";
+                                statusLabel.Text = "STATUS: WIRED // *.ROBLOX.COM TUNNELED | UDP GAMEPLAY DIRECT ISP";
                             }));
                         }
                     }
@@ -203,7 +212,7 @@ namespace RobloxGlobalSplit
             catch (Exception ex)
             {
                 AppendLog("Failed to start node.exe: " + ex.Message);
-                statusLabel.Text = "Error starting engine";
+                statusLabel.Text = "STATUS: ENGINE ERROR";
             }
         }
 
@@ -216,11 +225,11 @@ namespace RobloxGlobalSplit
                 string edge64 = @"C:\Program Files\Microsoft\Edge\Application\msedge.exe";
                 if (File.Exists(edge32))
                 {
-                    Process.Start(edge32, "--app=" + url + " --window-size=1220,820");
+                    Process.Start(edge32, "--app=" + url + " --window-size=1280,840");
                 }
                 else if (File.Exists(edge64))
                 {
-                    Process.Start(edge64, "--app=" + url + " --window-size=1220,820");
+                    Process.Start(edge64, "--app=" + url + " --window-size=1280,840");
                 }
                 else
                 {
